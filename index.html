@@ -3,11 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meraki Beauty Center - SaaS</title>
+  <title>Meraki Beauty Center - SaaS Pro Enterprise</title>
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @media print {
+      body { background-color: #FFF !important; }
+      header, nav, .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      main { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+      .card-report { border: 1px solid #CCC !important; box-shadow: none !important; }
+    }
+  </style>
 </head>
 <body style="margin: 0; background-color: #F9F8F6;">
   <div id="root"></div>
@@ -16,21 +25,21 @@
     const { useState } = React;
 
     function MerakiBeautySaaS() {
-      const [rolActual, setRolActual] = useState('gerencia');
-      const [estilistaSeleccionada, setEstilistaSeleccionada] = useState('Sarela');
-      const [pinIngresado, setPinIngresado] = useState('');
-      const [mostrarModalPin, setMostrarModalPin] = useState(false);
-      const [accionPendiente, setAccionPendiente] = useState(null);
+      const [usuarioAutenticado, setUsuarioAutenticado] = useState(null);
+      const [rolSeleccionadoLogin, setRolSeleccionadoLogin] = useState('estilista');
+      const [estilistaLogin, setEstilistaLogin] = useState('Sarela');
+      const [pinLogin, setPinLogin] = useState('');
+      const [errorLogin, setErrorLogin] = useState('');
 
       const [personal, setPersonal] = useState([
-        { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, estado: 'Activo' },
-        { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, estado: 'Activo' },
-        { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, estado: 'Activo' },
-        { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, estado: 'Activo' },
-        { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, estado: 'Activo' },
-        { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, estado: 'Activo' },
-        { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, estado: 'Activo' },
-        { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, estado: 'Activo' },
+        { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, pin: '1111' },
+        { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, pin: '2222' },
+        { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, pin: '3333' },
+        { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, pin: '4444' },
+        { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, pin: '5555' },
+        { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, pin: '6666' },
+        { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, pin: '7777' },
+        { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, pin: '2026' },
       ]);
 
       const [servicios, setServicios] = useState([
@@ -42,245 +51,483 @@
       ]);
 
       const [citas, setCitas] = useState([
-        { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Sarela', precio: 120, adelanto: 50, metodoAdelanto: 'QR', saldo: 70, metodoSaldo: 'Efectivo', estado: '🟢 APROBADO' },
-        { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, metodoSaldo: '-', estado: '🟢 APROBADO' },
+        { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Sarela', precio: 120, adelanto: 50, metodoAdelanto: 'QR', saldo: 70, estado: '🟢 APROBADO' },
+        { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO' },
+        { id: 3, fecha: '2026-11-11', hora: '15:00', cliente: 'Carla Mendez', celular: '73344556', servicio: 'Cortes', personal: 'Viki', precio: 60, adelanto: 20, metodoAdelanto: 'Efectivo', saldo: 40, estado: '🟢 APROBADO' },
       ]);
 
       const [gastos, setGastos] = useState([
         { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar' }
       ]);
 
-      const [nuevoPersonalNombre, setNuevoPersonalNombre] = useState('');
-      const [nuevoServicioNombre, setNuevoServicioNombre] = useState('');
-      const [nuevoServicioPrecio, setNuevoServicioPrecio] = useState('');
-      const [activoTab, setActivoTab] = useState('registro');
+      const [activoTab, setActivoTab] = useState('reportes');
+      const [tipoReporte, setTipoReporte] = useState('financiero');
+      const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-11-01');
+      const [filtroFechaFin, setFiltroFechaFin] = useState('2026-11-30');
 
-      const verificarPin = (accion) => {
-        if (pinIngresado === '2026') {
-          setMostrarModalPin(false);
-          setPinIngresado('');
-          accion();
-        } else {
-          alert('PIN Gerencial incorrecto. El PIN maestro es 2026.');
+      // Formulario Nuevo Personal
+      const [nuevoNombreUser, setNuevoNombreUser] = useState('');
+      const [nuevoCargoUser, setNuevoCargoUser] = useState('Estilista');
+      const [nuevaComisionUser, setNuevaComisionUser] = useState('50');
+      const [nuevoPinUser, setNuevoPinUser] = useState('');
+
+      // Formulario Citas
+      const [nuevaFecha, setNuevaFecha] = useState('2026-11-10');
+      const [nuevaHora, setNuevaHora] = useState('11:00');
+      const [nuevoCliente, setNuevoCliente] = useState('');
+      const [nuevoCelular, setNuevoCelular] = useState('');
+      const [nuevoServicio, setNuevoServicio] = useState('Cortes');
+      const [nuevaEstilista, setNuevaEstilista] = useState('Sarela');
+      const [nuevoAdelanto, setNuevoAdelanto] = useState('');
+      const [nuevoMetodoAdelanto, setNuevoMetodoAdelanto] = useState('Efectivo');
+
+      const manejarLogin = (e) => {
+        e.preventDefault();
+        setErrorLogin('');
+
+        if (rolSeleccionadoLogin === 'gerencia') {
+          const adminObj = personal.find(p => p.cargo === 'Administración' && p.pin === pinLogin);
+          if (pinLogin === '2026' || adminObj) {
+            setUsuarioAutenticado({ rol: 'gerencia', nombre: 'Gerente / Dueño' });
+            setActivoTab('reportes');
+          } else {
+            setErrorLogin('PIN Gerencial incorrecto. (PIN Maestro: 2026)');
+          }
+        } else if (rolSeleccionadoLogin === 'recepcion') {
+          if (pinLogin === '1234' || pinLogin === '2026') {
+            setUsuarioAutenticado({ rol: 'recepcion', nombre: 'Recepción / Caja' });
+            setActivoTab('registro');
+          } else {
+            setErrorLogin('PIN de Recepción incorrecto. (PIN: 1234)');
+          }
+        } else if (rolSeleccionadoLogin === 'estilista') {
+          const estilistaObj = personal.find(p => p.nombre === estilistaLogin);
+          if (estilistaObj && (pinLogin === estilistaObj.pin || pinLogin === '2026')) {
+            setUsuarioAutenticado({ rol: 'estilista', nombre: estilistaLogin });
+            setActivoTab('comisiones');
+          } else {
+            setErrorLogin(`PIN incorrecto para ${estilistaLogin}.`);
+          }
         }
+        setPinLogin('');
       };
 
-      const solicitarPin = (accion) => {
-        setAccionPendiente(() => accion);
-        setMostrarModalPin(true);
+      const cerrarSesion = () => {
+        setUsuarioAutenticado(null);
+        setPinLogin('');
+        setErrorLogin('');
       };
 
-      const agregarPersonal = () => {
-        if (!nuevoPersonalNombre.trim()) return;
-        setPersonal([...personal, { id: Date.now(), nombre: nuevoPersonalNombre, cargo: 'Estilista', comision: 0.50, estado: 'Activo' }]);
-        setNuevoPersonalNombre('');
+      const crearNuevoPersonal = (e) => {
+        e.preventDefault();
+        if (!nuevoNombreUser.trim() || !nuevoPinUser.trim()) return alert('Ingrese nombre y PIN.');
+        setPersonal([...personal, { id: Date.now(), nombre: nuevoNombreUser, cargo: nuevoCargoUser, comision: parseFloat(nuevaComisionUser)/100, pin: nuevoPinUser }]);
+        setNuevoNombreUser('');
+        setNuevoPinUser('');
+        alert('¡Personal registrado con éxito!');
       };
 
-      const agregarServicio = () => {
-        if (!nuevoServicioNombre.trim() || !nuevoServicioPrecio) return;
-        setServicios([...servicios, { id: Date.now(), nombre: nuevoServicioNombre, precio: parseFloat(nuevoServicioPrecio) }]);
-        setNuevoServicioNombre('');
-        setNuevoServicioPrecio('');
+      const eliminarPersonal = (id) => {
+        if (confirm('¿Eliminar usuario?')) setPersonal(personal.filter(p => p.id !== id));
       };
 
-      const totalIngresos = citas.reduce((acc, c) => acc + c.precio, 0);
-      const totalGastos = gastos.reduce((acc, g) => acc + g.monto, 0);
+      const agregarCita = (e) => {
+        e.preventDefault();
+        if (!nuevoCliente.trim()) return alert('Ingrese clienta.');
+        const servicioObj = servicios.find(s => s.nombre === nuevoServicio);
+        const precioTotal = servicioObj ? servicioObj.precio : 100;
+        const adelantoNum = parseFloat(nuevoAdelanto) || 0;
+
+        setCitas([{
+          id: Date.now(),
+          fecha: nuevaFecha,
+          hora: nuevaHora,
+          cliente: nuevoCliente,
+          celular: nuevoCelular || 'S/N',
+          servicio: nuevoServicio,
+          personal: nuevaEstilista,
+          precio: precioTotal,
+          adelanto: adelantoNum,
+          metodoAdelanto: nuevoMetodoAdelanto,
+          saldo: (precioTotal - adelantoNum) > 0 ? (precioTotal - adelantoNum) : 0,
+          estado: '🟢 APROBADO'
+        }, ...citas]);
+
+        setNuevoCliente('');
+        setNuevoCelular('');
+        setNuevoAdelanto('');
+        alert('¡Cita agendada con éxito!');
+        setActivoTab('agenda');
+      };
+
+      const citasFiltradas = citas.filter(c => c.fecha >= filtroFechaInicio && c.fecha <= filtroFechaFin);
+      const gastosFiltrados = gastos.filter(g => g.fecha >= filtroFechaInicio && g.fecha <= filtroFechaFin);
+      const totalIngresos = citasFiltradas.reduce((acc, c) => acc + c.precio, 0);
+      const totalGastos = gastosFiltrados.reduce((acc, g) => acc + g.monto, 0);
       const totalComisiones = personal.reduce((acc, p) => {
-        const ventasPersonal = citas.filter(c => c.personal === p.nombre).reduce((sum, c) => sum + c.precio, 0);
+        const ventasPersonal = citasFiltradas.filter(c => c.personal === p.nombre).reduce((sum, c) => sum + c.precio, 0);
         return acc + (ventasPersonal * p.comision);
       }, 0);
       const utilidadNeta = totalIngresos - totalComisiones - totalGastos;
 
+      const diasCalendario = [...new Set(citas.map(c => c.fecha))].sort();
+
+      if (!usuarioAutenticado) {
+        return (
+          <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1A1A1A', padding: '16px', fontFamily: 'Work Sans, sans-serif' }}>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', borderTop: '6px solid #E8C5C8' }}>
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '700', color: '#1A1A1A' }}>MERAKI BEAUTY CENTER</h1>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#888' }}>Sistema SaaS Ejecutivo (Oruro, Bolivia)</p>
+              </div>
+
+              {errorLogin && (
+                <div style={{ backgroundColor: '#FEE2E2', color: '#991B1B', padding: '10px', borderRadius: '6px', fontSize: '13px', marginBottom: '16px', textAlign: 'center', fontWeight: '500' }}>
+                  {errorLogin}
+                </div>
+              )}
+
+              <form onSubmit={manejarLogin} style={{ display: 'grid', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: '#333' }}>Seleccione su Rol:</label>
+                  <select value={rolSeleccionadoLogin} onChange={(e) => setRolSeleccionadoLogin(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E2DDD5', fontSize: '14px', fontWeight: '500' }}>
+                    <option value="estilista">✂️ Personal Estilista</option>
+                    <option value="recepcion">📋 Recepción / Caja</option>
+                    <option value="gerencia">👑 Gerencia / Dueños</option>
+                  </select>
+                </div>
+
+                {rolSeleccionadoLogin === 'estilista' && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: '#333' }}>Seleccione su Nombre:</label>
+                    <select value={estilistaLogin} onChange={(e) => setEstilistaLogin(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E2DDD5', fontSize: '14px' }}>
+                      {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                        <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: '#333' }}>PIN de Acceso Personal:</label>
+                  <input type="password" maxLength="4" placeholder="••••" value={pinLogin} onChange={(e) => setPinLogin(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #E2DDD5', fontSize: '18px', textAlign: 'center', letterSpacing: '4px', boxSizing: 'border-box' }} required />
+                </div>
+
+                <button type="submit" style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF', border: 'none', padding: '12px', borderRadius: '6px', fontWeight: '700', fontSize: '15px', cursor: 'pointer', marginTop: '8px' }}>
+                  Ingresar al Sistema
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div style={{ fontFamily: 'Work Sans, sans-serif', backgroundColor: '#F9F8F6', color: '#1A1A1A', minHeight: '100vh', paddingBottom: '40px' }}>
           
-          <header style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #E8C5C8', flexWrap: 'wrap', gap: '12px' }}>
+          <header className="no-print" style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #E8C5C8', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>MERAKI BEAUTY CENTER</h1>
-              <span style={{ fontSize: '12px', color: '#E8C5C8' }}>Sistema SaaS Ejecutivo (Oruro, Bolivia)</span>
+              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>MERAKI BEAUTY CENTER</h1>
+              <span style={{ fontSize: '12px', color: '#E8C5C8' }}>Usuario Activo: <strong>{usuarioAutenticado.nombre}</strong></span>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <select 
-                value={rolActual} 
-                onChange={(e) => setRolActual(e.target.value)}
-                style={{ backgroundColor: '#2D2D2D', color: '#E8C5C8', border: '1px solid #E8C5C8', padding: '8px 12px', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}
-              >
-                <option value="gerencia">👑 Rol: Gerencia / Dueños</option>
-                <option value="recepcion">📋 Rol: Recepción / Caja</option>
-                <option value="estilista">✂️ Rol: Portal Estilistas</option>
-              </select>
-
-              {rolActual === 'estilista' && (
-                <select 
-                  value={estilistaSeleccionada} 
-                  onChange={(e) => setEstilistaSeleccionada(e.target.value)}
-                  style={{ backgroundColor: '#F5EBEE', color: '#1A1A1A', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: '600' }}
-                >
-                  {personal.filter(p => p.cargo === 'Estilista').map(p => (
-                    <option key={p.id} value={p.nombre}>{p.nombre}</option>
-                  ))}
-                </select>
-              )}
-            </div>
+            <button onClick={cerrarSesion} style={{ backgroundColor: '#333', color: '#E8C5C8', border: '1px solid #E8C5C8', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+              🔒 Cerrar Sesión
+            </button>
           </header>
 
-          <nav style={{ backgroundColor: '#2D2D2D', padding: '0 24px', display: 'flex', gap: '8px', overflowX: 'auto' }}>
-            {rolActual === 'gerencia' && (
-              <button onClick={() => setActivoTab('reportes')} style={tabStyle(activoTab === 'reportes')}>📊 Dashboard Dueños</button>
+          <nav className="no-print" style={{ backgroundColor: '#2D2D2D', padding: '0 24px', display: 'flex', gap: '8px', overflowX: 'auto' }}>
+            {usuarioAutenticado.rol === 'gerencia' && (
+              <button onClick={() => setActivoTab('reportes')} style={tabStyle(activoTab === 'reportes')}>📊 Generador de Reportes</button>
             )}
-            {(rolActual === 'gerencia' || rolActual === 'recepcion') && (
+            {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') && (
               <>
                 <button onClick={() => setActivoTab('registro')} style={tabStyle(activoTab === 'registro')}>📋 Registro Diario</button>
-                <button onClick={() => setActivoTab('agenda')} style={tabStyle(activoTab === 'agenda')}>📅 Agenda Visual</button>
-                <button onClick={() => setActivoTab('arqueo')} style={tabStyle(activoTab === 'arqueo')}>💰 Arqueo de Caja</button>
+                <button onClick={() => setActivoTab('nuevaCita')} style={tabStyle(activoTab === 'nuevaCita')}>➕ Nueva Cita</button>
+                <button onClick={() => setActivoTab('agenda')} style={tabStyle(activoTab === 'agenda')}>📅 Calendario de Citas</button>
+                <button onClick={() => setActivoTab('arqueo')} style={tabStyle(activoTab === 'arqueo')}>💰 Arqueo Caja</button>
                 <button onClick={() => setActivoTab('gastos')} style={tabStyle(activoTab === 'gastos')}>🧾 Gastos Operativos</button>
               </>
             )}
-            {(rolActual === 'gerencia' || rolActual === 'estilista') && (
-              <button onClick={() => setActivoTab('comisiones')} style={tabStyle(activoTab === 'comisiones')}>💵 Comisiones & Liquidación</button>
-            )}
-            {rolActual === 'gerencia' && (
-              <button onClick={() => setActivoTab('config')} style={tabStyle(activoTab === 'config')}>⚙️ Configuración Maestra</button>
+            <button onClick={() => setActivoTab('comisiones')} style={tabStyle(activoTab === 'comisiones')}>
+              💵 {usuarioAutenticado.rol === 'estilista' ? 'Mis Comisiones' : 'Comisiones Personal'}
+            </button>
+            {usuarioAutenticado.rol === 'gerencia' && (
+              <button onClick={() => setActivoTab('config')} style={tabStyle(activoTab === 'config')}>⚙️ Usuarios y PINs</button>
             )}
           </nav>
 
           <main style={{ maxWidth: '1200px', margin: '24px auto', padding: '0 16px' }}>
 
-            {activoTab === 'reportes' && rolActual === 'gerencia' && (
+            {activoTab === 'reportes' && usuarioAutenticado.rol === 'gerencia' && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Dashboard Ejecutivo Gerencial</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                  <TarjetaKPI titulo="Total Ingresos del Periodo" valor={`Bs ${totalIngresos.toFixed(2)}`} color="#1A1A1A" />
-                  <TarjetaKPI titulo="Comisiones Totales Personal" valor={`Bs ${totalComisiones.toFixed(2)}`} color="#D97706" />
-                  <TarjetaKPI titulo="Gastos Operativos" valor={`Bs ${totalGastos.toFixed(2)}`} color="#DC2626" />
-                  <TarjetaKPI titulo="Utilidad Neta Estimada" valor={`Bs ${utilidadNeta.toFixed(2)}`} color="#059669" />
+                <div className="no-print" style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2DDD5', marginBottom: '24px' }}>
+                  <h3 style={{ margin: '0 0 16px 0', borderLeft: '4px solid #E8C5C8', paddingLeft: '8px' }}>Filtros y Configuración del Reporte Gerencial</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', alignItems: 'end' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Tipo de Reporte:</label>
+                      <select value={tipoReporte} onChange={(e) => setTipoReporte(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E2DDD5', fontWeight: '600' }}>
+                        <option value="financiero">📈 Resumen Financiero Ejecutivo</option>
+                        <option value="estilistas">✂️ Rendimiento y Comisiones</option>
+                        <option value="gastos">🧾 Desglose Consolidado de Gastos</option>
+                        <option value="servicios">📋 Auditoría de Citas y Cobros</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Fecha Inicio:</label>
+                      <input type="date" value={filtroFechaInicio} onChange={(e) => setFiltroFechaInicio(e.target.value)} style={{ width: '100%', padding: '9px', borderRadius: '6px', border: '1px solid #E2DDD5' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Fecha Fin:</label>
+                      <input type="date" value={filtroFechaFin} onChange={(e) => setFiltroFechaFin(e.target.value)} style={{ width: '100%', padding: '9px', borderRadius: '6px', border: '1px solid #E2DDD5' }} />
+                    </div>
+                    <button onClick={() => window.print()} style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF', border: 'none', padding: '11px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      🖨️ Imprimir / Guardar PDF
+                    </button>
+                  </div>
+                </div>
+
+                <div className="card-report" style={{ backgroundColor: '#FFFFFF', padding: '32px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #1A1A1A', paddingBottom: '16px', marginBottom: '24px' }}>
+                    <div>
+                      <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '700' }}>MERAKI BEAUTY CENTER</h1>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#666' }}>Oruro, Bolivia • Informe Oficial Gerencial</p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: '12px', color: '#888', display: 'block' }}>Rango de Evaluación:</span>
+                      <strong style={{ fontSize: '14px' }}>{filtroFechaInicio} al {filtroFechaFin}</strong>
+                    </div>
+                  </div>
+
+                  {tipoReporte === 'financiero' && (
+                    <div>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>1. Resumen Consolidado de Resultados</h2>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                        <TarjetaKPI titulo="Total Ingresos Brutos" valor={`Bs ${totalIngresos.toFixed(2)}`} color="#1A1A1A" />
+                        <TarjetaKPI titulo="Comisiones Totales Personal" valor={`Bs ${totalComisiones.toFixed(2)}`} color="#D97706" />
+                        <TarjetaKPI titulo="Gastos Operativos" valor={`Bs ${totalGastos.toFixed(2)}`} color="#DC2626" />
+                        <TarjetaKPI titulo="Utilidad Neta Estimada" valor={`Bs ${utilidadNeta.toFixed(2)}`} color="#059669" />
+                      </div>
+                    </div>
+                  )}
+
+                  {tipoReporte === 'estilistas' && (
+                    <div>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>2. Detalle de Rendimiento y Liquidación de Personal</h2>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Nombre del Personal</th>
+                            <th style={thStyle}>Cargo</th>
+                            <th style={thStyle}>Servicios</th>
+                            <th style={thStyle}>Total Producido (Bs)</th>
+                            <th style={thStyle}>% Comisión</th>
+                            <th style={thStyle}>Monto a Liquidar (Bs)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {personal.map(p => {
+                            const citasPersonal = citasFiltradas.filter(c => c.personal === p.nombre);
+                            const totalVentas = citasPersonal.reduce((sum, c) => sum + c.precio, 0);
+                            const ganancia = totalVentas * p.comision;
+                            return (
+                              <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                                <td style={tdStyle}><strong>{p.nombre}</strong></td>
+                                <td style={tdStyle}>{p.cargo}</td>
+                                <td style={tdStyle}>{citasPersonal.length} citas</td>
+                                <td style={tdStyle}>Bs {totalVentas.toFixed(2)}</td>
+                                <td style={tdStyle}>{(p.comision * 100)}%</td>
+                                <td style={tdStyle}><strong style={{ color: '#059669' }}>Bs {ganancia.toFixed(2)}</strong></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {tipoReporte === 'gastos' && (
+                    <div>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>3. Desglose de Gastos y Salida de Caja Chica</h2>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Fecha</th>
+                            <th style={thStyle}>Descripción</th>
+                            <th style={thStyle}>Categoría</th>
+                            <th style={thStyle}>Autorizado Por</th>
+                            <th style={thStyle}>Monto (Bs)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {gastosFiltrados.map(g => (
+                            <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}>{g.fecha}</td>
+                              <td style={tdStyle}>{g.descripcion}</td>
+                              <td style={tdStyle}>{g.categoria}</td>
+                              <td style={tdStyle}>{g.autorizado}</td>
+                              <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {g.monto.toFixed(2)}</strong></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {tipoReporte === 'servicios' && (
+                    <div>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>4. Auditoría de Citas y Atenciones</h2>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Fecha</th>
+                            <th style={thStyle}>Cliente</th>
+                            <th style={thStyle}>Servicio</th>
+                            <th style={thStyle}>Estilista</th>
+                            <th style={thStyle}>Precio Total</th>
+                            <th style={thStyle}>Adelanto</th>
+                            <th style={thStyle}>Saldo Pendiente</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {citasFiltradas.map(c => (
+                            <tr key={c.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}>{c.fecha} [{c.hora}]</td>
+                              <td style={tdStyle}>{c.cliente} ({c.celular})</td>
+                              <td style={tdStyle}>{c.servicio}</td>
+                              <td style={tdStyle}>{c.personal}</td>
+                              <td style={tdStyle}>Bs {c.precio.toFixed(2)}</td>
+                              <td style={tdStyle}>Bs {c.adelanto}</td>
+                              <td style={tdStyle}>Bs {c.saldo}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {activoTab === 'registro' && (
-              <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '16px' }}>Registro Diario Operativo y Caja</h2>
-                <div style={{ overflowX: 'auto', backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                        <th style={thStyle}>Fecha</th>
-                        <th style={thStyle}>Hora</th>
-                        <th style={thStyle}>Cliente</th>
-                        <th style={thStyle}>Celular</th>
-                        <th style={thStyle}>Servicio</th>
-                        <th style={thStyle}>Personal</th>
-                        <th style={thStyle}>Precio (Bs)</th>
-                        <th style={thStyle}>Adelanto</th>
-                        <th style={thStyle}>Saldo</th>
-                        <th style={thStyle}>Estado</th>
-                        {rolActual === 'gerencia' && <th style={thStyle}>Acciones</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {citas.map(c => (
-                        <tr key={c.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                          <td style={tdStyle}>{c.fecha}</td>
-                          <td style={tdStyle}>{c.hora}</td>
-                          <td style={tdStyle}>{c.cliente}</td>
-                          <td style={tdStyle}>{c.celular}</td>
-                          <td style={tdStyle}>{c.servicio}</td>
-                          <td style={tdStyle}>{c.personal}</td>
-                          <td style={tdStyle}>Bs {c.precio.toFixed(2)}</td>
-                          <td style={tdStyle}>Bs {c.adelanto}</td>
-                          <td style={tdStyle}>Bs {c.saldo}</td>
-                          <td style={tdStyle}><span style={{ backgroundColor: '#DEF7EC', color: '#03543F', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>{c.estado}</span></td>
-                          {rolActual === 'gerencia' && (
-                            <td style={tdStyle}>
-                              <button onClick={() => solicitarPin(() => setCitas(citas.filter(item => item.id !== c.id)))} style={{ backgroundColor: '#FEE2E2', color: '#991B1B', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Eliminar</button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
+            {/* CALENDARIO VISUAL EN CUADRÍCULA */}
             {activoTab === 'agenda' && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Agenda Visual Semanal</h2>
-                <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                  <ul style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
-                    {citas.map(c => (
-                      <li key={c.id}><strong>{c.fecha} [{c.hora}]</strong> - {c.cliente} | Servicio: <em>{c.servicio}</em> (Asignado a: <strong>{c.personal}</strong>)</li>
-                    ))}
-                  </ul>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Calendario Visual de Citas</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+                  {diasCalendario.map(fecha => {
+                    const citasDelDia = citas.filter(c => c.fecha === fecha);
+                    return (
+                      <div key={fecha} style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                        <div style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF', padding: '12px 16px', fontWeight: '700', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>📅 {fecha}</span>
+                          <span style={{ fontSize: '12px', backgroundColor: '#E8C5C8', color: '#1A1A1A', padding: '2px 8px', borderRadius: '10px' }}>{citasDelDia.length} citas</span>
+                        </div>
+                        <div style={{ padding: '16px', display: 'grid', gap: '12px' }}>
+                          {citasDelDia.map(c => (
+                            <div key={c.id} style={{ backgroundColor: '#F9F8F6', padding: '12px', borderRadius: '6px', borderLeft: '4px solid #D97706', border: '1px solid #E2DDD5' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '700', marginBottom: '4px' }}>
+                                <span style={{ color: '#D97706' }}>⏰ {c.hora}</span>
+                                <span>Bs {c.precio}</span>
+                              </div>
+                              <div style={{ fontSize: '15px', fontWeight: '700', color: '#1A1A1A', marginBottom: '4px' }}>{c.cliente}</div>
+                              <div style={{ fontSize: '13px', color: '#555' }}>Servicio: <strong>{c.servicio}</strong></div>
+                              <div style={{ fontSize: '13px', color: '#555' }}>Estilista: <strong style={{ color: '#03543F' }}>{c.personal}</strong></div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {activoTab === 'arqueo' && (
+            {/* GESTIÓN DE USUARIOS Y PINS */}
+            {activoTab === 'config' && usuarioAutenticado.rol === 'gerencia' && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Arqueo de Caja y Cierre de Turno</h2>
-                <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2DDD5', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-                  <div>
-                    <h3>Ingresos Registrados</h3>
-                    <p>Total Ingresos: <strong>Bs {totalIngresos.toFixed(2)}</strong></p>
-                    <p>Total Gastos: <strong>Bs {totalGastos.toFixed(2)}</strong></p>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Gestión de Personal y Claves de Acceso (PINs)</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Registrar Nuevo Personal / Asignar PIN</h3>
+                    <form onSubmit={crearNuevoPersonal} style={{ display: 'grid', gap: '14px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Nombre Completo:</label>
+                        <input type="text" placeholder="Ej. Camila Flores" value={nuevoNombreUser} onChange={(e) => setNuevoNombreUser(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Cargo / Rol:</label>
+                          <select value={nuevoCargoUser} onChange={(e) => setNuevoCargoUser(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                            <option value="Estilista">Estilista</option>
+                            <option value="Recepción">Recepción / Caja</option>
+                            <option value="Administración">Administración</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>% Comisión:</label>
+                          <input type="number" placeholder="50" value={nuevaComisionUser} onChange={(e) => setNuevaComisionUser(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>PIN de Acceso (4 dígitos):</label>
+                        <input type="password" maxLength="4" placeholder="Ej. 8888" value={nuevoPinUser} onChange={(e) => setNuevoPinUser(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5', letterSpacing: '3px', fontWeight: '700' }} required />
+                      </div>
+                      <button type="submit" style={btnPrimaryStyle}>+ Guardar Nuevo Personal</button>
+                    </form>
                   </div>
-                  <div style={{ backgroundColor: '#F5EBEE', padding: '16px', borderRadius: '6px' }}>
-                    <h3>Efectivo Neto Esperado</h3>
-                    <p style={{ fontSize: '24px', fontWeight: '700', margin: '8px 0' }}>Bs {(totalIngresos - totalGastos).toFixed(2)}</p>
+
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Directorio de Personal y Claves Activas</h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Nombre</th>
+                            <th style={thStyle}>Cargo</th>
+                            <th style={thStyle}>PIN</th>
+                            <th style={thStyle}>Comisión</th>
+                            <th style={thStyle}>Acción</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {personal.map(p => (
+                            <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}><strong>{p.nombre}</strong></td>
+                              <td style={tdStyle}>{p.cargo}</td>
+                              <td style={tdStyle}><span style={{ backgroundColor: '#E5E7EB', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace', fontWeight: '700' }}>{p.pin}</span></td>
+                              <td style={tdStyle}>{(p.comision * 100)}%</td>
+                              <td style={tdStyle}>
+                                <button onClick={() => eliminarPersonal(p.id)} style={{ backgroundColor: '#FEE2E2', color: '#991B1B', border: 'none', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Eliminar</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {activoTab === 'gastos' && (
-              <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Control de Caja Chica y Gastos</h2>
-                <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', padding: '16px', overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                        <th style={thStyle}>Fecha</th>
-                        <th style={thStyle}>Descripción</th>
-                        <th style={thStyle}>Categoría</th>
-                        <th style={thStyle}>Monto (Bs)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {gastos.map(g => (
-                        <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                          <td style={tdStyle}>{g.fecha}</td>
-                          <td style={tdStyle}>{g.descripcion}</td>
-                          <td style={tdStyle}>{g.categoria}</td>
-                          <td style={tdStyle}>Bs {g.monto.toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
+            {/* COMISIONES */}
             {activoTab === 'comisiones' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>
-                  {rolActual === 'estilista' ? `Mi Portal de Comisiones (${estilistaSeleccionada})` : 'Liquidación Semanal de Comisiones'}
+                  {usuarioAutenticado.rol === 'estilista' ? `Resumen de Mis Trabajos y Comisiones (${usuarioAutenticado.nombre})` : 'Liquidación Semanal de Comisiones'}
                 </h2>
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', padding: '16px', overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                        <th style={thStyle}>Personal</th>
-                        <th style={thStyle}>Total Ventas (Bs)</th>
+                        <th style={thStyle}>Estilista</th>
+                        <th style={thStyle}>Total Ventas / Servicios (Bs)</th>
                         <th style={thStyle}>% Comisión</th>
-                        <th style={thStyle}>Neto a Pagar (Bs)</th>
+                        <th style={thStyle}>Mi Ganancia Neta (Bs)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {personal
-                        .filter(p => rolActual === 'gerencia' || p.nombre === estilistaSeleccionada)
+                        .filter(p => usuarioAutenticado.rol !== 'estilista' || p.nombre === usuarioAutenticado.nombre)
                         .map(p => {
                           const ventas = citas.filter(c => c.personal === p.nombre).reduce((acc, c) => acc + c.precio, 0);
                           const comisionBruta = ventas * p.comision;
@@ -289,7 +536,7 @@
                               <td style={tdStyle}><strong>{p.nombre}</strong></td>
                               <td style={tdStyle}>Bs {ventas.toFixed(2)}</td>
                               <td style={tdStyle}>{(p.comision * 100)}%</td>
-                              <td style={tdStyle}><strong>Bs {comisionBruta.toFixed(2)}</strong></td>
+                              <td style={tdStyle}><strong style={{ color: '#059669', fontSize: '16px' }}>Bs {comisionBruta.toFixed(2)}</strong></td>
                             </tr>
                           );
                         })}
@@ -299,60 +546,139 @@
               </div>
             )}
 
-            {activoTab === 'config' && rolActual === 'gerencia' && (
+            {/* REGISTRO DIARIO */}
+            {activoTab === 'registro' && (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Panel de Configuración Maestra (PIN: 2026)</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-                  <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3 style={{ marginTop: 0 }}>Gestión de Personal</h3>
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                      <input type="text" placeholder="Nombre de estilista" value={nuevoPersonalNombre} onChange={(e) => setNuevoPersonalNombre(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
-                      <button onClick={agregarPersonal} style={btnPrimaryStyle}>Añadir</button>
-                    </div>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {personal.map(p => (
-                        <li key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F0F0F0' }}>
-                          <span>{p.nombre}</span><span><strong>{(p.comision * 100)}%</strong></span>
-                        </li>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Registro Diario de Caja</h2>
+                  <button onClick={() => setActivoTab('nuevaCita')} style={btnPrimaryStyle}>+ Registrar Cita</button>
+                </div>
+                <div style={{ overflowX: 'auto', backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                        <th style={thStyle}>Fecha/Hora</th>
+                        <th style={thStyle}>Cliente</th>
+                        <th style={thStyle}>Servicio</th>
+                        <th style={thStyle}>Estilista</th>
+                        <th style={thStyle}>Precio</th>
+                        <th style={thStyle}>Adelanto</th>
+                        <th style={thStyle}>Saldo</th>
+                        <th style={thStyle}>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {citas.map(c => (
+                        <tr key={c.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                          <td style={tdStyle}><strong>{c.fecha}</strong><br/>{c.hora}</td>
+                          <td style={tdStyle}>{c.cliente} ({c.celular})</td>
+                          <td style={tdStyle}>{c.servicio}</td>
+                          <td style={tdStyle}><strong>{c.personal}</strong></td>
+                          <td style={tdStyle}>Bs {c.precio.toFixed(2)}</td>
+                          <td style={tdStyle}>Bs {c.adelanto}</td>
+                          <td style={tdStyle}>Bs {c.saldo}</td>
+                          <td style={tdStyle}><span style={{ backgroundColor: '#DEF7EC', color: '#03543F', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>{c.estado}</span></td>
+                        </tr>
                       ))}
-                    </ul>
-                  </div>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
-                  <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3>Catálogo de Servicios (Bs)</h3>
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                      <input type="text" placeholder="Servicio" value={nuevoServicioNombre} onChange={(e) => setNuevoServicioNombre(e.target.value)} style={{ flex: 2, padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
-                      <input type="number" placeholder="Bs" value={nuevoServicioPrecio} onChange={(e) => setNuevoServicioPrecio(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
-                      <button onClick={agregarServicio} style={btnPrimaryStyle}>Crear</button>
+            {/* NUEVA CITA */}
+            {activoTab === 'nuevaCita' && (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') && (
+              <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginTop: 0, marginBottom: '20px' }}>Registrar Nueva Cita</h2>
+                <form onSubmit={agregarCita} style={{ display: 'grid', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Fecha:</label>
+                      <input type="date" value={nuevaFecha} onChange={(e) => setNuevaFecha(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
                     </div>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {servicios.map(s => (
-                        <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F0F0F0' }}>
-                          <span>{s.nombre}</span><span><strong>Bs {s.precio.toFixed(2)}</strong></span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Hora:</label>
+                      <input type="time" value={nuevaHora} onChange={(e) => setNuevaHora(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
+                    </div>
                   </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Nombre Clienta:</label>
+                    <input type="text" placeholder="Ej. Ana Gomez" value={nuevoCliente} onChange={(e) => setNuevoCliente(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Servicio:</label>
+                      <select value={nuevoServicio} onChange={(e) => setNuevoServicio(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                        {servicios.map(s => (
+                          <option key={s.id} value={s.nombre}>{s.nombre} (Bs {s.precio})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Estilista:</label>
+                      <select value={nuevaEstilista} onChange={(e) => setNuevaEstilista(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                        {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                          <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Adelanto (Bs):</label>
+                      <input type="number" placeholder="0" value={nuevoAdelanto} onChange={(e) => setNuevoAdelanto(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Método Adelanto:</label>
+                      <select value={nuevoMetodoAdelanto} onChange={(e) => setNuevoMetodoAdelanto(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="QR">QR</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" style={{ ...btnPrimaryStyle, padding: '12px', marginTop: '10px' }}>Guardar Cita</button>
+                </form>
+              </div>
+            )}
+
+            {/* ARQUEO */}
+            {activoTab === 'arqueo' && (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') && (
+              <div>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Arqueo de Caja</h2>
+                <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                  <h3>Efectivo Neto Esperado: <strong>Bs {(totalIngresos - totalGastos).toFixed(2)}</strong></h3>
+                </div>
+              </div>
+            )}
+
+            {/* GASTOS */}
+            {activoTab === 'gastos' && (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') && (
+              <div>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Gastos Operativos</h2>
+                <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F5EBEE' }}>
+                        <th style={thStyle}>Fecha</th>
+                        <th style={thStyle}>Descripción</th>
+                        <th style={thStyle}>Monto (Bs)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {gastos.map(g => (
+                        <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                          <td style={tdStyle}>{g.fecha}</td>
+                          <td style={tdStyle}>{g.descripcion}</td>
+                          <td style={tdStyle}>Bs {g.monto.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
 
           </main>
-
-          {mostrarModalPin && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-              <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', width: '320px', textAlign: 'center' }}>
-                <h3 style={{ marginTop: 0 }}>Autorización Gerencial</h3>
-                <p style={{ fontSize: '13px', color: '#666' }}>Ingrese PIN maestro (2026):</p>
-                <input type="password" maxLength="4" value={pinIngresado} onChange={(e) => setPinIngresado(e.target.value)} placeholder="••••" style={{ width: '100%', padding: '10px', fontSize: '18px', textAlign: 'center', letterSpacing: '4px', marginBottom: '16px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => setMostrarModalPin(false)} style={{ flex: 1, padding: '8px', backgroundColor: '#E5E7EB', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>
-                  <button onClick={() => verificarPin(accionPendiente)} style={{ flex: 1, padding: '8px', backgroundColor: '#1A1A1A', color: '#FFFFFF', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Autorizar</button>
-                </div>
-              </div>
-            </div>
-          )}
-
         </div>
       );
     }
@@ -363,8 +689,8 @@
       border: 'none', padding: '12px 16px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', whiteSpace: 'nowrap'
     });
 
-    const thStyle = { padding: '12px 16px', fontWeight: '600', color: '#1A1A1A' };
-    const tdStyle = { padding: '12px 16px', color: '#333' };
+    const thStyle = { padding: '10px 12px', fontWeight: '600', color: '#1A1A1A' };
+    const tdStyle = { padding: '10px 12px', color: '#333' };
     const btnPrimaryStyle = { backgroundColor: '#1A1A1A', color: '#FFFFFF', border: 'none', padding: '8px 16px', borderRadius: '4px', fontWeight: '600', cursor: 'pointer' };
 
     function TarjetaKPI({ titulo, valor, color }) {
