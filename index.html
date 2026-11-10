@@ -51,17 +51,29 @@
       ]);
 
       const [citas, setCitas] = useState([
-        { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', precio: 120, adelanto: 50, metodoAdelanto: 'QR', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad' },
-        { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió' },
+        { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', precio: 120, adelanto: 50, metodoAdelanto: 'QR (Casa)', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad', modificadoAsistencia: false },
+        { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió', modificadoAsistencia: false },
       ]);
 
       const [gastos, setGastos] = useState([
         { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar', turno: 'Mañana' }
       ]);
 
+      const [arqueos, setArqueos] = useState([
+        { id: 1, fecha: '2026-11-10', turno: 'Mañana', efectivoDeclarado: 350, qrRegistrado: 50, totalIngresosSist: 400, totalGastos: 85, diferencia: 0, estado: '🟢 APROBADO', responsable: 'Manuel Aguilar' }
+      ]);
+
       const [limpiezaDescansos, setLimpiezaDescansos] = useState([
-        { id: 1, fecha: '2026-11-10', persona: 'Sarela', tarea: 'Limpieza general de espejos y tocadores', turno: 'Mañana' },
-        { id: 2, fecha: '2026-11-11', persona: 'Karen', tarea: 'Desinfección de área de lavabos', turno: 'Tarde' },
+        { id: 1, fecha: '2026-11-10', persona: 'Sarela', turno: 'Mañana', tarea: 'Limpieza general de espejos y tocadores' },
+        { id: 2, fecha: '2026-11-11', persona: 'Karen', turno: 'Tarde', tarea: 'Desinfección de lavabos y recepción' },
+      ]);
+
+      const [descuentos, setDescuentos] = useState([
+        { id: 1, fecha: '2026-11-10', personal: 'Karen', monto: 20, motivo: 'Material dañado por descuido', estado: '🟢 APROBADO' }
+      ]);
+
+      const [autorizaciones, setAutorizaciones] = useState([
+        { id: 1, solicitante: 'Sarela', tipo: 'Cambiar asistencia de clienta', detalle: 'Clienta llegó tarde pero avisó', estado: 'PENDIENTE' }
       ]);
 
       const [activoTab, setActivoTab] = useState('reportes');
@@ -79,12 +91,27 @@
       const [nuevoAdelanto, setNuevoAdelanto] = useState('');
       const [nuevoMetodoAdelanto, setNuevoMetodoAdelanto] = useState('Efectivo');
 
+      // Formulario Arqueo
+      const [arqueoTurno, setArqueoTurno] = useState('Mañana');
+      const [efectivoFisicoDeclarado, setEfectivoFisicoDeclarado] = useState('');
+      const [qrFisicoDeclarado, setQrFisicoDeclarado] = useState('');
+
       // Formulario Gasto
       const [nuevoGastoDesc, setNuevoGastoDesc] = useState('');
       const [nuevoGastoMonto, setNuevoGastoMonto] = useState('');
       const [nuevoGastoCat, setNuevoGastoCat] = useState('Insumos');
       const [nuevoGastoTurno, setNuevoGastoTurno] = useState('Mañana');
-      const [editandoGastoId, setEditandoGastoId] = useState(null);
+
+      // Formulario Limpieza
+      const [limpiezaFecha, setLimpiezaFecha] = useState('2026-11-10');
+      const [limpiezaPersona, setLimpiezaPersona] = useState('Sarela');
+      const [limpiezaTurno, setLimpiezaTurno] = useState('Mañana');
+      const [limpiezaTarea, setLimpiezaTarea] = useState('');
+
+      // Formulario Descuentos
+      const [descPersonal, setDescPersonal] = useState('Sarela');
+      const [descMonto, setDescMonto] = useState('');
+      const [descMotivo, setDescMotivo] = useState('');
 
       const manejarLogin = (e) => {
         e.preventDefault();
@@ -93,7 +120,7 @@
         if (rolSeleccionadoLogin === 'gerencia') {
           const adminObj = personal.find(p => p.cargo === 'Administración' && p.pin === pinLogin);
           if (pinLogin === '2026' || adminObj) {
-            setUsuarioAutenticado({ rol: 'gerencia', nombre: 'Gerente / Dueño' });
+            setUsuarioAutenticado({ rol: 'gerencia', nombre: adminObj ? adminObj.nombre : 'Gerente / Dueño' });
             setActivoTab('reportes');
           } else {
             setErrorLogin('PIN Gerencial incorrecto. (PIN Maestro: 2026)');
@@ -101,7 +128,7 @@
         } else if (rolSeleccionadoLogin === 'recepcion') {
           if (pinLogin === '1234' || pinLogin === '2026') {
             setUsuarioAutenticado({ rol: 'recepcion', nombre: 'Recepción / Caja' });
-            setActivoTab('registro');
+            setActivoTab('agendaMatriz');
           } else {
             setErrorLogin('PIN incorrecto. (PIN Recepción: 1234)');
           }
@@ -109,7 +136,7 @@
           const estilistaObj = personal.find(p => p.nombre === estilistaLogin);
           if (estilistaObj && (pinLogin === estilistaObj.pin || pinLogin === '2026')) {
             setUsuarioAutenticado({ rol: 'estilista', nombre: estilistaLogin });
-            setActivoTab('agenda');
+            setActivoTab('agendaMatriz');
           } else {
             setErrorLogin(`PIN incorrecto para ${estilistaLogin}.`);
           }
@@ -142,58 +169,127 @@
           adelanto: adelantoNum,
           metodoAdelanto: nuevoMetodoAdelanto,
           saldo: (precioTotal - adelantoNum) > 0 ? (precioTotal - adelantoNum) : 0,
-          estado: usuarioAutenticado.rol === 'gerencia' ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN',
-          asistencia: 'Sin Novedad'
+          estado: (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN',
+          asistencia: 'Sin Novedad',
+          modificadoAsistencia: false
         }, ...citas]);
 
         setNuevoCliente('');
         setNuevoCelular('');
         setNuevoAdelanto('');
-        alert('¡Cita registrada con éxito! (Pendiente de aprobación si fue registrada por staff)');
-        setActivoTab('agenda');
+        alert('¡Cita registrada con éxito!');
+        setActivoTab('agendaMatriz');
       };
 
-      const cambiarAsistencia = (id, nuevaAsistencia) => {
-        setCitas(citas.map(c => c.id === id ? { ...c, asistencia: nuevaAsistencia } : c));
+      const solicitarCambioAsistencia = (id, nuevaAsistencia) => {
+        if (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') {
+          setCitas(citas.map(c => c.id === id ? { ...c, asistencia: nuevaAsistencia } : c));
+        } else {
+          const citaObj = citas.find(c => c.id === id);
+          if (citaObj.modificadoAsistencia) {
+            alert('⚠️ Ya realizaste la modificación de asistencia para esta cita. Para cambiarla nuevamente, debes solicitar autorización.');
+            setAutorizaciones([...autorizaciones, {
+              id: Date.now(),
+              solicitante: usuarioAutenticado.nombre,
+              tipo: 'Modificar asistencia por segunda vez',
+              detalle: `Cita de ${citaObj.cliente} (${citaObj.fecha} ${citaObj.hora})`,
+              estado: 'PENDIENTE'
+            }]);
+            setActivoTab('misAutorizaciones');
+            return;
+          }
+          setCitas(citas.map(c => c.id === id ? { ...c, asistencia: nuevaAsistencia, modificadoAsistencia: true } : c));
+          alert('Asistencia modificada. Recuerda que solo se permite 1 cambio libre por cita.');
+        }
       };
 
-      const asignarEstilistaACita = (id, estilistaNombre) => {
-        setCitas(citas.map(c => c.id === id ? { ...c, personal: estilistaNombre, estado: '🟢 APROBADO' } : c));
+      const asignarEstilista = (id, nombreEstilista) => {
+        if (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion' || usuarioAutenticado.rol === 'estilista') {
+          setCitas(citas.map(c => c.id === id ? { ...c, personal: nombreEstilista, estado: '🟢 APROBADO' } : c));
+        } else {
+          alert('No tienes permisos para asignar estilista.');
+        }
+      };
+
+      const registrarArqueo = (e) => {
+        e.preventDefault();
+        const efec = parseFloat(efectivoFisicoDeclarado) || 0;
+        const qr = parseFloat(qrFisicoDeclarado) || 0;
+
+        const ingresosSist = citas.reduce((acc, c) => acc + c.adelanto + (c.saldo > 0 ? 0 : 0), 0); 
+        const gastosSist = gastos.reduce((acc, g) => acc + g.monto, 0);
+
+        setArqueos([{
+          id: Date.now(),
+          fecha: new Date().toISOString().split('T')[0],
+          turno: arqueoTurno,
+          efectivoDeclarado: efec,
+          qrRegistrado: qr,
+          totalIngresosSist: ingresosSist,
+          totalGastos: gastosSist,
+          diferencia: (efec + qr) - (ingresosSist - gastosSist),
+          estado: usuarioAutenticado.rol === 'gerencia' ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN',
+          responsable: usuarioAutenticado.nombre
+        }, ...arqueos]);
+
+        setEfectivoFisicoDeclarado('');
+        setQrFisicoDeclarado('');
+        alert('¡Arqueo declarado y enviado a gerencia!');
+      };
+
+      const aprobarArqueo = (id) => {
+        setArqueos(arqueos.map(a => a.id === id ? { ...a, estado: '🟢 APROBADO' } : a));
       };
 
       const guardarGasto = (e) => {
         e.preventDefault();
-        if (!nuevoGastoDesc || !nuevoGastoMonto) return alert('Complete los datos del gasto.');
-        
-        if (editandoGastoId) {
-          setGastos(gastos.map(g => g.id === editandoGastoId ? { ...g, descripcion: nuevoGastoDesc, monto: parseFloat(nuevoGastoMonto), categoria: nuevoGastoCat, turno: nuevoGastoTurno } : g));
-          setEditandoGastoId(null);
-        } else {
-          setGastos([...gastos, {
-            id: Date.now(),
-            fecha: new Date().toISOString().split('T')[0],
-            descripcion: nuevoGastoDesc,
-            categoria: nuevoGastoCat,
-            monto: parseFloat(nuevoGastoMonto),
-            autorizado: usuarioAutenticado.nombre,
-            turno: nuevoGastoTurno
-          }]);
-        }
+        if (!nuevoGastoDesc || !nuevoGastoMonto) return alert('Complete los datos.');
+        setGastos([...gastos, {
+          id: Date.now(),
+          fecha: new Date().toISOString().split('T')[0],
+          descripcion: nuevoGastoDesc,
+          categoria: nuevoGastoCat,
+          monto: parseFloat(nuevoGastoMonto),
+          autorizado: usuarioAutenticado.nombre,
+          turno: nuevoGastoTurno
+        }]);
         setNuevoGastoDesc('');
         setNuevoGastoMonto('');
-        alert('¡Gasto registrado/actualizado con éxito!');
+        alert('Gasto registrado correctamente.');
       };
 
-      const editarGasto = (g) => {
-        setEditandoGastoId(g.id);
-        setNuevoGastoDesc(g.descripcion);
-        setNuevoGastoMonto(g.monto);
-        setNuevoGastoCat(g.categoria);
-        setNuevoGastoTurno(g.turno || 'Mañana');
+      const guardarLimpieza = (e) => {
+        e.preventDefault();
+        if (!limpiezaTarea.trim()) return alert('Ingrese la tarea.');
+        setLimpiezaDescansos([...limpiezaDescansos, {
+          id: Date.now(),
+          fecha: limpiezaFecha,
+          persona: limpiezaPersona,
+          turno: limpiezaTurno,
+          tarea: limpiezaTarea
+        }]);
+        setLimpiezaTarea('');
+        alert('¡Asignación de limpieza/descanso guardada!');
       };
 
-      const aprobarCita = (id) => {
-        setCitas(citas.map(c => c.id === id ? { ...c, estado: '🟢 APROBADO' } : c));
+      const guardarDescuento = (e) => {
+        e.preventDefault();
+        if (!descMonto || !descMotivo) return alert('Complete los datos del descuento.');
+        setDescuentos([...descuentos, {
+          id: Date.now(),
+          fecha: new Date().toISOString().split('T')[0],
+          personal: descPersonal,
+          monto: parseFloat(descMonto),
+          motivo: descMotivo,
+          estado: usuarioAutenticado.rol === 'gerencia' ? '🟢 APROBADO' : '🟡 PENDIENTE'
+        }]);
+        setDescMonto('');
+        setDescMotivo('');
+        alert('¡Descuento registrado con éxito!');
+      };
+
+      const aprobarAutorizacion = (id) => {
+        setAutorizaciones(autorizaciones.map(a => a.id === id ? { ...a, estado: '🟢 APROBADO' } : a));
       };
 
       const citasFiltradas = citas.filter(c => c.fecha >= filtroFechaInicio && c.fecha <= filtroFechaFin);
@@ -206,7 +302,8 @@
       }, 0);
       const utilidadNeta = totalIngresos - totalComisiones - totalGastos;
 
-      const diasCalendario = [...new Set(citas.map(c => c.fecha))].sort();
+      const horasMatriz = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
+      const diasMatriz = ['2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15', '2026-11-16'];
 
       if (!usuarioAutenticado) {
         return (
@@ -276,19 +373,20 @@
             {usuarioAutenticado.rol === 'gerencia' && (
               <button onClick={() => setActivoTab('reportes')} style={tabStyle(activoTab === 'reportes')}>📊 Reportes</button>
             )}
-            <button onClick={() => setActivoTab('agenda')} style={tabStyle(activoTab === 'agenda')}>📅 Agenda y Citas</button>
-            <button onClick={() => setActivoTab('horarios')} style={tabStyle(activoTab === 'horarios')}>⏰ Horarios Libres</button>
+            <button onClick={() => setActivoTab('agendaMatriz')} style={tabStyle(activoTab === 'agendaMatriz')}>📅 Calendario Matriz (Semana)</button>
             <button onClick={() => setActivoTab('nuevaCita')} style={tabStyle(activoTab === 'nuevaCita')}>➕ Agendar Cita</button>
+            <button onClick={() => setActivoTab('arqueo')} style={tabStyle(activoTab === 'arqueo')}>💰 Arqueos por Turno</button>
             <button onClick={() => setActivoTab('gastos')} style={tabStyle(activoTab === 'gastos')}>🧾 Gastos Caja</button>
-            <button onClick={() => setActivoTab('arqueo')} style={tabStyle(activoTab === 'arqueo')}>💰 Arqueo Turnos</button>
             <button onClick={() => setActivoTab('limpieza')} style={tabStyle(activoTab === 'limpieza')}>🧹 Limpieza & Descansos</button>
-            <button onClick={() => setActivoTab('comisiones')} style={tabStyle(activoTab === 'comisiones')}>💵 Comisiones</button>
+            <button onClick={() => setActivoTab('descuentos')} style={tabStyle(activoTab === 'descuentos')}>📉 Descuentos</button>
+            <button onClick={() => setActivoTab('comisiones')} style={tabStyle(activoTab === 'comisiones')}>💵 Mis Comisiones</button>
+            <button onClick={() => setActivoTab('misAutorizaciones')} style={tabStyle(activoTab === 'misAutorizaciones')}>🔐 Solicitudes ({autorizaciones.filter(a => a.estado === 'PENDIENTE').length})</button>
             {usuarioAutenticado.rol === 'gerencia' && (
               <button onClick={() => setActivoTab('config')} style={tabStyle(activoTab === 'config')}>⚙️ Personal & PINs</button>
             )}
           </nav>
 
-          <main style={{ maxWidth: '1200px', margin: '24px auto', padding: '0 16px' }}>
+          <main style={{ maxWidth: '1300px', margin: '24px auto', padding: '0 16px' }}>
 
             {/* REPORTE GERENCIAL */}
             {activoTab === 'reportes' && usuarioAutenticado.rol === 'gerencia' && (
@@ -300,9 +398,9 @@
                       <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Tipo de Reporte:</label>
                       <select value={tipoReporte} onChange={(e) => setTipoReporte(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E2DDD5', fontWeight: '600' }}>
                         <option value="financiero">📈 Resumen Financiero Ejecutivo</option>
-                        <option value="estilistas">✂️ Rendimiento y Comisiones</option>
+                        <option value="estilistas">✂️ Rendimiento y Comisiones (Montos Netos)</option>
                         <option value="gastos">🧾 Desglose Consolidado de Gastos</option>
-                        <option value="servicios">📋 Auditoría de Citas</option>
+                        <option value="arqueos">💰 Auditoría de Arqueos de Turno</option>
                       </select>
                     </div>
                     <div>
@@ -345,31 +443,27 @@
 
                   {tipoReporte === 'estilistas' && (
                     <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>2. Detalle de Liquidación de Personal</h2>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>2. Liquidación de Comisiones (Monto Neto)</h2>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
                             <th style={thStyle}>Personal</th>
-                            <th style={thStyle}>Cargo</th>
-                            <th style={thStyle}>Servicios</th>
-                            <th style={thStyle}>Ventas (Bs)</th>
-                            <th style={thStyle}>Comisión</th>
-                            <th style={thStyle}>A Pagar (Bs)</th>
+                            <th style={thStyle}>Servicios Realizados</th>
+                            <th style={thStyle}>Total Ventas (Bs)</th>
+                            <th style={thStyle}>Comisión Neta (Bs)</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {personal.map(p => {
+                          {personal.filter(p => p.cargo === 'Estilista').map(p => {
                             const citasPersonal = citasFiltradas.filter(c => c.personal === p.nombre);
                             const totalVentas = citasPersonal.reduce((sum, c) => sum + c.precio, 0);
                             const ganancia = totalVentas * p.comision;
                             return (
                               <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
                                 <td style={tdStyle}><strong>{p.nombre}</strong></td>
-                                <td style={tdStyle}>{p.cargo}</td>
-                                <td style={tdStyle}>{citasPersonal.length}</td>
+                                <td style={tdStyle}>{citasPersonal.length} servicios</td>
                                 <td style={tdStyle}>Bs {totalVentas.toFixed(2)}</td>
-                                <td style={tdStyle}>{(p.comision * 100)}%</td>
-                                <td style={tdStyle}><strong style={{ color: '#059669' }}>Bs {ganancia.toFixed(2)}</strong></td>
+                                <td style={tdStyle}><strong style={{ color: '#059669', fontSize: '16px' }}>Bs {ganancia.toFixed(2)}</strong></td>
                               </tr>
                             );
                           })}
@@ -378,14 +472,43 @@
                     </div>
                   )}
 
+                  {tipoReporte === 'arqueos' && (
+                    <div>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>3. Auditoría de Arqueos por Turno (Efectivo vs QR Casa)</h2>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Fecha / Turno</th>
+                            <th style={thStyle}>Responsable</th>
+                            <th style={thStyle}>Efectivo Declarado</th>
+                            <th style={thStyle}>QR (Casa/Salón)</th>
+                            <th style={thStyle}>Diferencia Caja</th>
+                            <th style={thStyle}>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {arqueos.map(a => (
+                            <tr key={a.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}>{a.fecha} [{a.turno}]</td>
+                              <td style={tdStyle}>{a.responsable}</td>
+                              <td style={tdStyle}>Bs {a.efectivoDeclarado}</td>
+                              <td style={tdStyle}>Bs {a.qrRegistrado}</td>
+                              <td style={tdStyle}><strong style={{ color: a.diferencia === 0 ? '#059669' : '#DC2626' }}>Bs {a.diferencia}</strong></td>
+                              <td style={tdStyle}>{a.estado}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
                   {tipoReporte === 'gastos' && (
                     <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>3. Desglose Consolidado de Gastos</h2>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>4. Desglose de Gastos Operativos</h2>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                            <th style={thStyle}>Fecha</th>
-                            <th style={thStyle}>Turno</th>
+                            <th style={thStyle}>Fecha/Turno</th>
                             <th style={thStyle}>Descripción</th>
                             <th style={thStyle}>Categoría</th>
                             <th style={thStyle}>Autorizado Por</th>
@@ -395,8 +518,7 @@
                         <tbody>
                           {gastosFiltrados.map(g => (
                             <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                              <td style={tdStyle}>{g.fecha}</td>
-                              <td style={tdStyle}>{g.turno || 'Mañana'}</td>
+                              <td style={tdStyle}>{g.fecha} ({g.turno})</td>
                               <td style={tdStyle}>{g.descripcion}</td>
                               <td style={tdStyle}>{g.categoria}</td>
                               <td style={tdStyle}>{g.autorizado}</td>
@@ -407,125 +529,74 @@
                       </table>
                     </div>
                   )}
-
-                  {tipoReporte === 'servicios' && (
-                    <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>4. Auditoría Completa de Citas</h2>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                        <thead>
-                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                            <th style={thStyle}>Fecha/Hora</th>
-                            <th style={thStyle}>Cliente</th>
-                            <th style={thStyle}>Servicio</th>
-                            <th style={thStyle}>Estilista</th>
-                            <th style={thStyle}>Estado/Asistencia</th>
-                            <th style={thStyle}>Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {citasFiltradas.map(c => (
-                            <tr key={c.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                              <td style={tdStyle}>{c.fecha} [{c.hora}]</td>
-                              <td style={tdStyle}>{c.cliente}</td>
-                              <td style={tdStyle}>{c.servicio}</td>
-                              <td style={tdStyle}>{c.personal}</td>
-                              <td style={tdStyle}>{c.estado} / <span style={{ color: '#D97706' }}>{c.asistencia}</span></td>
-                              <td style={tdStyle}>Bs {c.precio.toFixed(2)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
 
-            {/* AGENDA Y CITAS CON ASIGNACIÓN Y ASISTENCIA */}
-            {activoTab === 'agenda' && (
+            {/* CALENDARIO MATRIZ (ESTILO WINDOWS / MULTI-CITA POR HORA) */}
+            {activoTab === 'agendaMatriz' && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Agenda y Control de Citas</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-                  {diasCalendario.map(fecha => {
-                    const citasDelDia = citas.filter(c => c.fecha === fecha);
-                    return (
-                      <div key={fecha} style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', overflow: 'hidden' }}>
-                        <div style={{ backgroundColor: '#1A1A1A', color: '#FFFFFF', padding: '12px 16px', fontWeight: '700', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>📅 {fecha}</span>
-                          <span style={{ fontSize: '12px', backgroundColor: '#E8C5C8', color: '#1A1A1A', padding: '2px 8px', borderRadius: '10px' }}>{citasDelDia.length} citas</span>
-                        </div>
-                        <div style={{ padding: '16px', display: 'grid', gap: '12px' }}>
-                          {citasDelDia.map(c => (
-                            <div key={c.id} style={{ backgroundColor: '#F9F8F6', padding: '12px', borderRadius: '6px', border: '1px solid #E2DDD5', borderLeft: c.personal === 'Por Asignar' ? '4px solid #DC2626' : '4px solid #059669' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '700', marginBottom: '6px' }}>
-                                <span style={{ color: '#D97706' }}>⏰ {c.hora}</span>
-                                <span>{c.estado}</span>
-                              </div>
-                              <div style={{ fontSize: '15px', fontWeight: '700', color: '#1A1A1A' }}>{c.cliente}</div>
-                              <div style={{ fontSize: '13px', color: '#555', margin: '4px 0' }}>Servicio: <strong>{c.servicio}</strong> (Bs {c.precio})</div>
-                              
-                              {/* Asignación de Estilista si está pendiente */}
-                              <div style={{ fontSize: '13px', margin: '8px 0', padding: '6px', backgroundColor: '#FFF', borderRadius: '4px', border: '1px solid #DDD' }}>
-                                <span>Estilista: </span>
-                                {c.personal === 'Por Asignar' ? (
-                                  <select onChange={(e) => asignarEstilistaACita(c.id, e.target.value)} defaultValue="" style={{ padding: '4px', fontSize: '12px', marginLeft: '6px' }}>
-                                    <option value="" disabled>Asignar estilista libre...</option>
-                                    {personal.filter(p => p.cargo === 'Estilista').map(p => (
-                                      <option key={p.id} value={p.nombre}>{p.nombre}</option>
-                                    ))}
-                                  </select>
-                                ) : (
-                                  <strong style={{ color: '#03543F' }}>{c.personal}</strong>
-                                )}
-                              </div>
-
-                              {/* Control de Asistencia */}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #DDD' }}>
-                                <span style={{ fontSize: '12px', color: '#666' }}>Asistencia:</span>
-                                <select value={c.asistencia} onChange={(e) => cambiarAsistencia(c.id, e.target.value)} style={{ fontSize: '12px', padding: '4px', borderRadius: '4px' }}>
-                                  <option value="Sin Novedad">Sin Novedad (Pendiente)</option>
-                                  <option value="Asistió">🟢 Asistió Correctamente</option>
-                                  <option value="Llegó Tarde">🟡 Llegó Tarde</option>
-                                  <option value="No Asistió">🔴 No Asistió (No Show)</option>
-                                </select>
-                              </div>
-
-                              {/* Aprobación por parte de Gerencia */}
-                              {usuarioAutenticado.rol === 'gerencia' && c.estado.includes('PENDIENTE') && (
-                                <button onClick={() => aprobarCita(c.id)} style={{ width: '100%', marginTop: '8px', backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}>
-                                  ✓ Aprobar Cita Registrada
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Calendario Matriz Semanal (Estilo Windows)</h2>
+                  <button onClick={() => setActivoTab('nuevaCita')} style={btnPrimaryStyle}>+ Agendar Cita</button>
                 </div>
-              </div>
-            )}
 
-            {/* HORARIOS DISPONIBLES */}
-            {activoTab === 'horarios' && (
-              <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Disponibilidad de Horarios del Salón</h2>
-                <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                  <p style={{ fontSize: '14px', color: '#555', marginBottom: '20px' }}>Aquí puedes revisar las horas ocupadas por día para ubicar a nuevas clientas con las estilistas libres:</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-                    {diasCalendario.map(fecha => (
-                      <div key={fecha} style={{ padding: '16px', backgroundColor: '#F9F8F6', borderRadius: '6px', border: '1px solid #E2DDD5' }}>
-                        <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #DDD', paddingBottom: '6px' }}>{fecha}</h4>
-                        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#333' }}>
-                          {citas.filter(c => c.fecha === fecha).map(c => (
-                            <li key={c.id} style={{ marginBottom: '6px' }}>
-                              <strong>{c.hora}</strong> - {c.servicio} ({c.personal})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
+                <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', overflowX: 'auto', padding: '16px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '900px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#1A1A1A', color: '#FFF' }}>
+                        <th style={{ padding: '10px', border: '1px solid #444' }}>Hora</th>
+                        {diasMatriz.map(dia => (
+                          <th key={dia} style={{ padding: '10px', border: '1px solid #444' }}>{dia}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {horasMatriz.map(hora => (
+                        <tr key={hora}>
+                          <td style={{ padding: '10px', border: '1px solid #E2DDD5', fontWeight: '750', backgroundColor: '#F5EBEE', textAlign: 'center' }}>{hora}</td>
+                          {diasMatriz.map(dia => {
+                            const citasEnEsaHora = citas.filter(c => c.fecha === dia && c.hora.startsWith(hora.substring(0, 2)));
+                            return (
+                              <td key={dia} style={{ padding: '8px', border: '1px solid #E2DDD5', verticalAlign: 'top', minHeight: '80px', backgroundColor: citasEnEsaHora.length > 0 ? '#FFFBEB' : '#FFF' }}>
+                                {citasEnEsaHora.map(c => (
+                                  <div key={c.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #D97706', borderRadius: '4px', padding: '6px', marginBottom: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                    <div style={{ fontWeight: '700', color: '#1A1A1A', fontSize: '13px' }}>{c.cliente}</div>
+                                    <div style={{ color: '#555' }}>💇‍♀️ {c.servicio}</div>
+                                    
+                                    {/* Selector de estilista restringido solo a Dueño / Adm, o permitido si la estilista se asigna */}
+                                    <div style={{ marginTop: '4px', fontSize: '11px' }}>
+                                      Estilista: 
+                                      {(usuarioAutenticado.rol === 'gerencia' || c.personal === 'Por Asignar' || usuarioAutenticado.nombre === c.personal) ? (
+                                        <select value={c.personal} onChange={(e) => asignarEstilista(c.id, e.target.value)} style={{ fontSize: '11px', padding: '2px', marginLeft: '4px' }}>
+                                          <option value="Por Asignar">Por Asignar</option>
+                                          {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                                            <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                                          ))}
+                                        </select>
+                                      ) : (
+                                        <strong style={{ color: '#03543F', marginLeft: '4px' }}>{c.personal}</strong>
+                                      )}
+                                    </div>
+
+                                    {/* Control de Asistencia */}
+                                    <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <select value={c.asistencia} onChange={(e) => solicitarCambioAsistencia(c.id, e.target.value)} style={{ fontSize: '10px', padding: '2px' }}>
+                                        <option value="Sin Novedad">Sin Novedad</option>
+                                        <option value="Asistió">🟢 Asistió</option>
+                                        <option value="Llegó Tarde">🟡 Tarde</option>
+                                        <option value="No Asistió">🔴 No Asistió</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                ))}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -561,7 +632,7 @@
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Estilista:</label>
                       <select value={nuevaEstilista} onChange={(e) => setNuevaEstilista(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                        <option value="Por Asignar">-- Ver quién está libre (Por Asignar) --</option>
+                        <option value="Por Asignar">-- Por Asignar (Ver libres) --</option>
                         {personal.filter(p => p.cargo === 'Estilista').map(p => (
                           <option key={p.id} value={p.nombre}>{p.nombre}</option>
                         ))}
@@ -576,27 +647,89 @@
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Método Adelanto:</label>
                       <select value={nuevoMetodoAdelanto} onChange={(e) => setNuevoMetodoAdelanto(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="QR">QR</option>
+                        <option value="Efectivo Salón">Efectivo en Salón</option>
+                        <option value="QR (Casa)">QR (Pago en Casa / Remoto)</option>
                       </select>
                     </div>
                   </div>
-                  <button type="submit" style={{ ...btnPrimaryStyle, padding: '12px', marginTop: '10px' }}>Agendar Cita</button>
+                  <button type="submit" style={{ ...btnPrimaryStyle, padding: '12px', marginTop: '10px' }}>Guardar Cita</button>
                 </form>
               </div>
             )}
 
-            {/* GASTOS DE CAJA EDITABLES */}
-            {activoTab === 'gastos' && (
+            {/* ARQUEO DE CAJA POR TURNOS CON DECLARACIÓN REAL */}
+            {activoTab === 'arqueo' && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Control de Gastos y Salidas de Caja</h2>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Arqueo de Caja por Turnos</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                   <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3 style={{ marginTop: 0 }}>{editandoGastoId ? 'Editar Gasto' : 'Registrar Nuevo Gasto'}</h3>
+                    <h3 style={{ marginTop: 0 }}>Declarar Cierre de Turno</h3>
+                    <form onSubmit={registrarArqueo} style={{ display: 'grid', gap: '14px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Turno:</label>
+                        <select value={arqueoTurno} onChange={(e) => setArqueoTurno(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                          <option value="Mañana">Turno Mañana</option>
+                          <option value="Tarde">Turno Tarde</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Efectivo Físico Contado en Caja (Bs):</label>
+                        <input type="number" step="0.01" placeholder="Ej. 350" value={efectivoFisicoDeclarado} onChange={(e) => setEfectivoFisicoDeclarado(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Total Pagos QR Registrados (Incluye pagos en casa) (Bs):</label>
+                        <input type="number" step="0.01" placeholder="Ej. 100" value={qrFisicoDeclarado} onChange={(e) => setQrFisicoDeclarado(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                      </div>
+                      <button type="submit" style={btnPrimaryStyle}>Enviar Arqueo a Dueño/Admin</button>
+                    </form>
+                  </div>
+
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Historial de Arqueos Declarados</h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Turno</th>
+                            <th style={thStyle}>Efectivo / QR</th>
+                            <th style={thStyle}>Diferencia</th>
+                            <th style={thStyle}>Estado</th>
+                            <th style={thStyle}>Acción</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {arqueos.map(a => (
+                            <tr key={a.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}>{a.fecha} <br/><strong>{a.turno}</strong></td>
+                              <td style={tdStyle}>Efec: Bs {a.efectivoDeclarado} <br/>QR: Bs {a.qrRegistrado}</td>
+                              <td style={tdStyle}><strong style={{ color: a.diferencia === 0 ? '#059669' : '#DC2626' }}>Bs {a.diferencia}</strong></td>
+                              <td style={tdStyle}>{a.estado}</td>
+                              <td style={tdStyle}>
+                                {usuarioAutenticado.rol === 'gerencia' && a.estado.includes('PENDIENTE') && (
+                                  <button onClick={() => aprobarArqueo(a.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}>Aprobar</button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* GASTOS */}
+            {activoTab === 'gastos' && (
+              <div>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Gastos Operativos</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Registrar Gasto</h3>
                     <form onSubmit={guardarGasto} style={{ display: 'grid', gap: '14px' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Descripción:</label>
-                        <input type="text" placeholder="Ej. Compra de toallas o café" value={nuevoGastoDesc} onChange={(e) => setNuevoGastoDesc(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        <input type="text" placeholder="Ej. Materiales, café" value={nuevoGastoDesc} onChange={(e) => setNuevoGastoDesc(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div>
@@ -611,141 +744,222 @@
                           </select>
                         </div>
                       </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Categoría:</label>
-                        <select value={nuevoGastoCat} onChange={(e) => setNuevoGastoCat(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                          <option value="Insumos">Insumos</option>
-                          <option value="Limpieza">Limpieza</option>
-                          <option value="Servicios Básicos">Servicios Básicos</option>
-                          <option value="Varios">Varios</option>
-                        </select>
-                      </div>
-                      <button type="submit" style={btnPrimaryStyle}>{editandoGastoId ? 'Actualizar Gasto' : 'Guardar Gasto'}</button>
-                      {editandoGastoId && (
-                        <button type="button" onClick={() => { setEditandoGastoId(null); setNuevoGastoDesc(''); setNuevoGastoMonto(''); }} style={{ backgroundColor: '#ccc', border: 'none', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}>Cancelar Edición</button>
-                      )}
+                      <button type="submit" style={btnPrimaryStyle}>Guardar Gasto</button>
                     </form>
                   </div>
 
                   <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3 style={{ marginTop: 0 }}>Historial de Gastos Registrados</h3>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                        <thead>
-                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                            <th style={thStyle}>Turno/Fecha</th>
-                            <th style={thStyle}>Descripción</th>
-                            <th style={thStyle}>Monto</th>
-                            <th style={thStyle}>Acción</th>
+                    <h3 style={{ marginTop: 0 }}>Historial de Gastos</h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#F5EBEE' }}>
+                          <th style={thStyle}>Turno</th>
+                          <th style={thStyle}>Descripción</th>
+                          <th style={thStyle}>Monto</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {gastos.map(g => (
+                          <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                            <td style={tdStyle}>{g.fecha} ({g.turno})</td>
+                            <td style={tdStyle}>{g.descripcion}</td>
+                            <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {g.monto.toFixed(2)}</strong></td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {gastos.map(g => (
-                            <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                              <td style={tdStyle}>{g.fecha} <br/><span style={{ fontSize: '11px', color: '#666' }}>({g.turno || 'Mañana'})</span></td>
-                              <td style={tdStyle}>{g.descripcion}</td>
-                              <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {g.monto.toFixed(2)}</strong></td>
-                              <td style={tdStyle}>
-                                <button onClick={() => editarGasto(g)} style={{ backgroundColor: '#E5E7EB', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Editar</button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* ARQUEO POR TURNOS (MAÑANA / TARDE) */}
-            {activoTab === 'arqueo' && (
-              <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Arqueo de Caja por Turnos</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5', borderLeft: '4px solid #D97706' }}>
-                    <h3 style={{ marginTop: 0 }}>🌅 Turno Mañana</h3>
-                    <p style={{ fontSize: '14px', color: '#555' }}>Cierre y conteo de caja de la primera mitad del día.</p>
-                    <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '14px 0' }}/>
-                    <p>Total Ingresos Turno: <strong>Bs {totalIngresos.toFixed(2)}</strong></p>
-                    <p>Total Gastos Turno: <strong>Bs {totalGastos.toFixed(2)}</strong></p>
-                    <div style={{ backgroundColor: '#F5EBEE', padding: '12px', borderRadius: '6px', marginTop: '12px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: '600', color: '#666' }}>EFECTIVO ESPERADO EN CAJA:</span>
-                      <h3 style={{ margin: '4px 0 0 0', color: '#03543F' }}>Bs {(totalIngresos - totalGastos).toFixed(2)}</h3>
-                    </div>
-                  </div>
-
-                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5', borderLeft: '4px solid #1A1A1A' }}>
-                    <h3>🌇 Turno Tarde</h3>
-                    <p style={{ fontSize: '14px', color: '#555' }}>Cierre y conteo de caja de la segunda mitad del día.</p>
-                    <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '14px 0' }}/>
-                    <p>Control de cierre vespertino operativo y validación con recepción.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* LIMPIEZA Y DESCANSOS DINÁMICOS */}
+            {/* LIMPIEZA Y DESCANSOS (ESTILO CALENDARIO ROTATIVO) */}
             {activoTab === 'limpieza' && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Roles de Limpieza y Descansos Rotativos</h2>
-                <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                  <p style={{ fontSize: '14px', color: '#555', marginBottom: '16px' }}>Asignación flexible para que las tareas de orden y limpieza roten equitativamente entre el personal:</p>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                        <th style={thStyle}>Fecha</th>
-                        <th style={thStyle}>Personal Asignado</th>
-                        <th style={thStyle}>Turno</th>
-                        <th style={thStyle}>Tarea / Detalle de Limpieza</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {limpiezaDescansos.map(item => (
-                        <tr key={item.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                          <td style={tdStyle}><strong>{item.fecha}</strong></td>
-                          <td style={tdStyle}><span style={{ backgroundColor: '#F5EBEE', padding: '3px 8px', borderRadius: '4px', fontWeight: '600' }}>{item.persona}</span></td>
-                          <td style={tdStyle}>{item.turno}</td>
-                          <td style={tdStyle}>{item.tarea}</td>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Asignación Dinámica de Limpieza y Descansos</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                  {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') && (
+                    <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                      <h3 style={{ marginTop: 0 }}>Asignar Turno de Limpieza</h3>
+                      <form onSubmit={guardarLimpieza} style={{ display: 'grid', gap: '14px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Fecha:</label>
+                          <input type="date" value={limpiezaFecha} onChange={(e) => setLimpiezaFecha(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Personal:</label>
+                            <select value={limpiezaPersona} onChange={(e) => setLimpiezaPersona(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                              {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                                <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Turno:</label>
+                            <select value={limpiezaTurno} onChange={(e) => setLimpiezaTurno(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                              <option value="Mañana">Mañana</option>
+                              <option value="Tarde">Tarde</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Detalle / Tarea:</label>
+                          <input type="text" placeholder="Ej. Limpieza de espejos y orden" value={limpiezaTarea} onChange={(e) => setLimpiezaTarea(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                        <button type="submit" style={btnPrimaryStyle}>Guardar Asignación</button>
+                      </form>
+                    </div>
+                  )}
+
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Cronograma Activo de Limpieza</h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                          <th style={thStyle}>Fecha / Turno</th>
+                          <th style={thStyle}>Personal</th>
+                          <th style={thStyle}>Tarea</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {limpiezaDescansos.map(item => (
+                          <tr key={item.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                            <td style={tdStyle}>{item.fecha} <br/><strong>{item.turno}</strong></td>
+                            <td style={tdStyle}><strong>{item.persona}</strong></td>
+                            <td style={tdStyle}>{item.tarea}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* COMISIONES */}
+            {/* DESCUENTOS JUSTIFICADOS */}
+            {activoTab === 'descuentos' && (
+              <div>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Control de Descuentos Justificados</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                  {usuarioAutenticado.rol === 'gerencia' && (
+                    <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                      <h3 style={{ marginTop: 0 }}>Aplicar Descuento a Personal</h3>
+                      <form onSubmit={guardarDescuento} style={{ display: 'grid', gap: '14px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Personal:</label>
+                          <select value={descPersonal} onChange={(e) => setDescPersonal(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                            {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                              <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Monto a Descontar (Bs):</label>
+                          <input type="number" step="0.01" placeholder="Ej. 30" value={descMonto} onChange={(e) => setDescMonto(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Motivo Justificado:</label>
+                          <input type="text" placeholder="Ej. Material dañado" value={descMotivo} onChange={(e) => setDescMotivo(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                        <button type="submit" style={btnPrimaryStyle}>Registrar Descuento</button>
+                      </form>
+                    </div>
+                  )}
+
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Registro de Descuentos Aplicados</h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                          <th style={thStyle}>Personal</th>
+                          <th style={thStyle}>Motivo</th>
+                          <th style={thStyle}>Monto</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {descuentos.map(d => (
+                          <tr key={d.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                            <td style={tdStyle}><strong>{d.personal}</strong></td>
+                            <td style={tdStyle}>{d.motivo}</td>
+                            <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {d.monto.toFixed(2)}</strong></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* COMISIONES (SOLO MONTO NETO) */}
             {activoTab === 'comisiones' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>
-                  {usuarioAutenticado.rol === 'estilista' ? `Resumen de Mis Trabajos y Comisiones (${usuarioAutenticado.nombre})` : 'Liquidación Semanal de Comisiones'}
+                  {usuarioAutenticado.rol === 'estilista' ? `Mi Ganancia Neta (${usuarioAutenticado.nombre})` : 'Liquidación de Comisiones'}
                 </h2>
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', padding: '16px', overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
                         <th style={thStyle}>Estilista</th>
-                        <th style={thStyle}>Total Ventas / Servicios (Bs)</th>
-                        <th style={thStyle}>% Comisión</th>
-                        <th style={thStyle}>Mi Ganancia Neta (Bs)</th>
+                        <th style={thStyle}>Servicios Atendidos</th>
+                        <th style={thStyle}>Monto Total a Cobrar (Comisión Neta)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {personal
                         .filter(p => usuarioAutenticado.rol !== 'estilista' || p.nombre === usuarioAutenticado.nombre)
+                        .filter(p => p.cargo === 'Estilista')
                         .map(p => {
                           const ventas = citas.filter(c => c.personal === p.nombre).reduce((acc, c) => acc + c.precio, 0);
-                          const comisionBruta = ventas * p.comision;
+                          const ganancia = ventas * p.comision;
+                          const totalDescuentos = descuentos.filter(d => d.personal === p.nombre).reduce((sum, d) => sum + d.monto, 0);
+                          const netoFinal = ganancia - totalDescuentos;
                           return (
                             <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
                               <td style={tdStyle}><strong>{p.nombre}</strong></td>
-                              <td style={tdStyle}>Bs {ventas.toFixed(2)}</td>
-                              <td style={tdStyle}>{(p.comision * 100)}%</td>
-                              <td style={tdStyle}><strong style={{ color: '#059669', fontSize: '16px' }}>Bs {comisionBruta.toFixed(2)}</strong></td>
+                              <td style={tdStyle}>{citas.filter(c => c.personal === p.nombre).length} servicios</td>
+                              <td style={tdStyle}><strong style={{ color: '#059669', fontSize: '18px' }}>Bs {netoFinal.toFixed(2)}</strong> <span style={{ fontSize: '12px', color: '#666' }}>(Desc: Bs {totalDescuentos})</span></td>
                             </tr>
                           );
                         })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* PESTAÑA DE AUTORIZACIONES PARA EL PERSONAL */}
+            {activoTab === 'misAutorizaciones' && (
+              <div>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Panel de Solicitudes y Autorizaciones</h2>
+                <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                  <p style={{ fontSize: '14px', color: '#555', marginBottom: '16px' }}>Aquí el personal puede ver el estado de sus solicitudes para modificar asistencias repetidas u otros permisos:</p>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                        <th style={thStyle}>Solicitante</th>
+                        <th style={thStyle}>Tipo</th>
+                        <th style={thStyle}>Detalle</th>
+                        <th style={thStyle}>Estado</th>
+                        <th style={thStyle}>Acción (Dueño/Admin)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {autorizaciones.map(a => (
+                        <tr key={a.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                          <td style={tdStyle}><strong>{a.solicitante}</strong></td>
+                          <td style={tdStyle}>{a.tipo}</td>
+                          <td style={tdStyle}>{a.detalle}</td>
+                          <td style={tdStyle}>{a.estado}</td>
+                          <td style={tdStyle}>
+                            {usuarioAutenticado.rol === 'gerencia' && a.estado === 'PENDIENTE' && (
+                              <button onClick={() => aprobarAutorizacion(a.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}>Aprobar Solicitud</button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -757,7 +971,6 @@
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Gestión de Personal y Claves de Acceso (PINs)</h2>
                 <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                  <h3 style={{ marginTop: 0 }}>Directorio Activo de Personal y Permisos</h3>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
