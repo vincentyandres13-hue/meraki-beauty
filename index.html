@@ -73,10 +73,14 @@
       ]);
 
       const [autorizaciones, setAutorizaciones] = useState([
-        { id: 1, solicitante: 'Sarela', tipo: 'Cambiar asistencia de clienta', detalle: 'Clienta llegó tarde pero avisó', estado: 'PENDIENTE' }
+        { id: 1, solicitante: 'Sarela', tipo: 'Modificar asistencia por segunda vez', detalle: 'Clienta llegó tarde pero avisó', estado: 'PENDIENTE' }
       ]);
 
-      const [activoTab, setActivoTab] = useState('reportes');
+      const [recomendaciones, setRecomendaciones] = useState([
+        { id: 1, estilista: 'Sarela', mensaje: '¡Excelente trabajo con las bombas capilares esta semana, Sarela! Sigue así.', fecha: '2026-11-10' }
+      ]);
+
+      const [activoTab, setActivoTab] = useState('agendaMatriz');
       const [tipoReporte, setTipoReporte] = useState('financiero');
       const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-11-01');
       const [filtroFechaFin, setFiltroFechaFin] = useState('2026-11-30');
@@ -113,6 +117,10 @@
       const [descMonto, setDescMonto] = useState('');
       const [descMotivo, setDescMotivo] = useState('');
 
+      // Formulario Recomendaciones
+      const [recEstilista, setRecEstilista] = useState('Sarela');
+      const [recMensaje, setRecMensaje] = useState('');
+
       const manejarLogin = (e) => {
         e.preventDefault();
         setErrorLogin('');
@@ -123,14 +131,14 @@
             setUsuarioAutenticado({ rol: 'gerencia', nombre: adminObj ? adminObj.nombre : 'Gerente / Dueño' });
             setActivoTab('reportes');
           } else {
-            setErrorLogin('PIN Gerencial incorrecto. (PIN Maestro: 2026)');
+            setErrorLogin('Credenciales incorrectas. Verifique su PIN.');
           }
-        } else if (rolSeleccionadoLogin === 'recepcion') {
+        } else if (rolSeleccionadoLogin === 'administracion') {
           if (pinLogin === '1234' || pinLogin === '2026') {
-            setUsuarioAutenticado({ rol: 'recepcion', nombre: 'Recepción / Caja' });
+            setUsuarioAutenticado({ rol: 'administracion', nombre: 'Administración' });
             setActivoTab('agendaMatriz');
           } else {
-            setErrorLogin('PIN incorrecto. (PIN Recepción: 1234)');
+            setErrorLogin('Credenciales incorrectas. Verifique su PIN.');
           }
         } else if (rolSeleccionadoLogin === 'estilista') {
           const estilistaObj = personal.find(p => p.nombre === estilistaLogin);
@@ -138,7 +146,7 @@
             setUsuarioAutenticado({ rol: 'estilista', nombre: estilistaLogin });
             setActivoTab('agendaMatriz');
           } else {
-            setErrorLogin(`PIN incorrecto para ${estilistaLogin}.`);
+            setErrorLogin('PIN incorrecto para la estilista seleccionada.');
           }
         }
         setPinLogin('');
@@ -169,7 +177,7 @@
           adelanto: adelantoNum,
           metodoAdelanto: nuevoMetodoAdelanto,
           saldo: (precioTotal - adelantoNum) > 0 ? (precioTotal - adelantoNum) : 0,
-          estado: (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN',
+          estado: (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN',
           asistencia: 'Sin Novedad',
           modificadoAsistencia: false
         }, ...citas]);
@@ -182,12 +190,12 @@
       };
 
       const solicitarCambioAsistencia = (id, nuevaAsistencia) => {
-        if (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') {
+        if (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') {
           setCitas(citas.map(c => c.id === id ? { ...c, asistencia: nuevaAsistencia } : c));
         } else {
           const citaObj = citas.find(c => c.id === id);
           if (citaObj.modificadoAsistencia) {
-            alert('⚠️ Ya realizaste la modificación de asistencia para esta cita. Para cambiarla nuevamente, debes solicitar autorización.');
+            alert('⚠️ Ya realizaste la modificación de asistencia para esta cita. Enviando solicitud de autorización...');
             setAutorizaciones([...autorizaciones, {
               id: Date.now(),
               solicitante: usuarioAutenticado.nombre,
@@ -199,15 +207,15 @@
             return;
           }
           setCitas(citas.map(c => c.id === id ? { ...c, asistencia: nuevaAsistencia, modificadoAsistencia: true } : c));
-          alert('Asistencia modificada. Recuerda que solo se permite 1 cambio libre por cita.');
+          alert('Asistencia modificada.');
         }
       };
 
       const asignarEstilista = (id, nombreEstilista) => {
-        if (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion' || usuarioAutenticado.rol === 'estilista') {
+        if (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion' || usuarioAutenticado.rol === 'estilista') {
           setCitas(citas.map(c => c.id === id ? { ...c, personal: nombreEstilista, estado: '🟢 APROBADO' } : c));
         } else {
-          alert('No tienes permisos para asignar estilista.');
+          alert('No autorizado.');
         }
       };
 
@@ -216,7 +224,7 @@
         const efec = parseFloat(efectivoFisicoDeclarado) || 0;
         const qr = parseFloat(qrFisicoDeclarado) || 0;
 
-        const ingresosSist = citas.reduce((acc, c) => acc + c.adelanto + (c.saldo > 0 ? 0 : 0), 0); 
+        const ingresosSist = citas.reduce((acc, c) => acc + c.adelanto, 0); 
         const gastosSist = gastos.reduce((acc, g) => acc + g.monto, 0);
 
         setArqueos([{
@@ -234,7 +242,7 @@
 
         setEfectivoFisicoDeclarado('');
         setQrFisicoDeclarado('');
-        alert('¡Arqueo declarado y enviado a gerencia!');
+        alert('¡Arqueo declarado y enviado a gerencia/administración!');
       };
 
       const aprobarArqueo = (id) => {
@@ -269,23 +277,20 @@
           tarea: limpiezaTarea
         }]);
         setLimpiezaTarea('');
-        alert('¡Asignación de limpieza/descanso guardada!');
+        alert('¡Asignación guardada!');
       };
 
-      const guardarDescuento = (e) => {
+      const guardarRecomendacion = (e) => {
         e.preventDefault();
-        if (!descMonto || !descMotivo) return alert('Complete los datos del descuento.');
-        setDescuentos([...descuentos, {
+        if (!recMensaje.trim()) return alert('Escriba un mensaje.');
+        setRecomendaciones([...recomendaciones, {
           id: Date.now(),
-          fecha: new Date().toISOString().split('T')[0],
-          personal: descPersonal,
-          monto: parseFloat(descMonto),
-          motivo: descMotivo,
-          estado: usuarioAutenticado.rol === 'gerencia' ? '🟢 APROBADO' : '🟡 PENDIENTE'
+          estilista: recEstilista,
+          mensaje: recMensaje,
+          fecha: new Date().toISOString().split('T')[0]
         }]);
-        setDescMonto('');
-        setDescMotivo('');
-        alert('¡Descuento registrado con éxito!');
+        setRecMensaje('');
+        alert('¡Recomendación enviada con éxito a la estilista!');
       };
 
       const aprobarAutorizacion = (id) => {
@@ -325,7 +330,7 @@
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: '#333' }}>Seleccione su Rol:</label>
                   <select value={rolSeleccionadoLogin} onChange={(e) => setRolSeleccionadoLogin(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E2DDD5', fontSize: '14px', fontWeight: '500' }}>
                     <option value="estilista">✂️ Personal Estilista</option>
-                    <option value="recepcion">📋 Recepción / Caja</option>
+                    <option value="administracion">📋 Administración</option>
                     <option value="gerencia">👑 Gerencia / Dueños</option>
                   </select>
                 </div>
@@ -373,14 +378,14 @@
             {usuarioAutenticado.rol === 'gerencia' && (
               <button onClick={() => setActivoTab('reportes')} style={tabStyle(activoTab === 'reportes')}>📊 Reportes</button>
             )}
-            <button onClick={() => setActivoTab('agendaMatriz')} style={tabStyle(activoTab === 'agendaMatriz')}>📅 Calendario Matriz (Semana)</button>
+            <button onClick={() => setActivoTab('agendaMatriz')} style={tabStyle(activoTab === 'agendaMatriz')}>📅 Calendario Matriz</button>
             <button onClick={() => setActivoTab('nuevaCita')} style={tabStyle(activoTab === 'nuevaCita')}>➕ Agendar Cita</button>
-            <button onClick={() => setActivoTab('arqueo')} style={tabStyle(activoTab === 'arqueo')}>💰 Arqueos por Turno</button>
-            <button onClick={() => setActivoTab('gastos')} style={tabStyle(activoTab === 'gastos')}>🧾 Gastos Caja</button>
+            <button onClick={() => setActivoTab('arqueo')} style={tabStyle(activoTab === 'arqueo')}>💰 Arqueos</button>
+            <button onClick={() => setActivoTab('gastos')} style={tabStyle(activoTab === 'gastos')}>🧾 Gastos</button>
             <button onClick={() => setActivoTab('limpieza')} style={tabStyle(activoTab === 'limpieza')}>🧹 Limpieza & Descansos</button>
-            <button onClick={() => setActivoTab('descuentos')} style={tabStyle(activoTab === 'descuentos')}>📉 Descuentos</button>
-            <button onClick={() => setActivoTab('comisiones')} style={tabStyle(activoTab === 'comisiones')}>💵 Mis Comisiones</button>
-            <button onClick={() => setActivoTab('misAutorizaciones')} style={tabStyle(activoTab === 'misAutorizaciones')}>🔐 Solicitudes ({autorizaciones.filter(a => a.estado === 'PENDIENTE').length})</button>
+            <button onClick={() => setActivoTab('comisiones')} style={tabStyle(activoTab === 'comisiones')}>💵 Comisiones Netas</button>
+            <button onClick={() => setActivoTab('recomendaciones')} style={tabStyle(activoTab === 'recomendaciones')}>⭐ Recomendaciones</button>
+            <button onClick={() => setActivoTab('misAutorizaciones')} style={tabStyle(activoTab === 'misAutorizaciones')}>🔐 Solicitudes</button>
             {usuarioAutenticado.rol === 'gerencia' && (
               <button onClick={() => setActivoTab('config')} style={tabStyle(activoTab === 'config')}>⚙️ Personal & PINs</button>
             )}
@@ -474,15 +479,15 @@
 
                   {tipoReporte === 'arqueos' && (
                     <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>3. Auditoría de Arqueos por Turno (Efectivo vs QR Casa)</h2>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>3. Auditoría de Arqueos por Turno</h2>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
                             <th style={thStyle}>Fecha / Turno</th>
                             <th style={thStyle}>Responsable</th>
                             <th style={thStyle}>Efectivo Declarado</th>
-                            <th style={thStyle}>QR (Casa/Salón)</th>
-                            <th style={thStyle}>Diferencia Caja</th>
+                            <th style={thStyle}>QR</th>
+                            <th style={thStyle}>Diferencia</th>
                             <th style={thStyle}>Estado</th>
                           </tr>
                         </thead>
@@ -537,7 +542,7 @@
             {activoTab === 'agendaMatriz' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Calendario Matriz Semanal (Estilo Windows)</h2>
+                  <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Calendario Matriz Semanal</h2>
                   <button onClick={() => setActivoTab('nuevaCita')} style={btnPrimaryStyle}>+ Agendar Cita</button>
                 </div>
 
@@ -564,10 +569,10 @@
                                     <div style={{ fontWeight: '700', color: '#1A1A1A', fontSize: '13px' }}>{c.cliente}</div>
                                     <div style={{ color: '#555' }}>💇‍♀️ {c.servicio}</div>
                                     
-                                    {/* Selector de estilista restringido solo a Dueño / Adm, o permitido si la estilista se asigna */}
+                                    {/* Selector de estilista restringido: Solo Dueño y Administración pueden asignar o editar estilistas libremente */}
                                     <div style={{ marginTop: '4px', fontSize: '11px' }}>
                                       Estilista: 
-                                      {(usuarioAutenticado.rol === 'gerencia' || c.personal === 'Por Asignar' || usuarioAutenticado.nombre === c.personal) ? (
+                                      {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') ? (
                                         <select value={c.personal} onChange={(e) => asignarEstilista(c.id, e.target.value)} style={{ fontSize: '11px', padding: '2px', marginLeft: '4px' }}>
                                           <option value="Por Asignar">Por Asignar</option>
                                           {personal.filter(p => p.cargo === 'Estilista').map(p => (
@@ -632,7 +637,7 @@
                     <div>
                       <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Estilista:</label>
                       <select value={nuevaEstilista} onChange={(e) => setNuevaEstilista(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                        <option value="Por Asignar">-- Por Asignar (Ver libres) --</option>
+                        <option value="Por Asignar">-- Por Asignar --</option>
                         {personal.filter(p => p.cargo === 'Estilista').map(p => (
                           <option key={p.id} value={p.nombre}>{p.nombre}</option>
                         ))}
@@ -648,7 +653,7 @@
                       <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Método Adelanto:</label>
                       <select value={nuevoMetodoAdelanto} onChange={(e) => setNuevoMetodoAdelanto(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
                         <option value="Efectivo Salón">Efectivo en Salón</option>
-                        <option value="QR (Casa)">QR (Pago en Casa / Remoto)</option>
+                        <option value="QR (Casa)">QR (Remoto / Casa)</option>
                       </select>
                     </div>
                   </div>
@@ -657,7 +662,7 @@
               </div>
             )}
 
-            {/* ARQUEO DE CAJA POR TURNOS CON DECLARACIÓN REAL */}
+            {/* ARQUEO DE CAJA */}
             {activoTab === 'arqueo' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Arqueo de Caja por Turnos</h2>
@@ -673,44 +678,46 @@
                         </select>
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Efectivo Físico Contado en Caja (Bs):</label>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Efectivo Físico Contado (Bs):</label>
                         <input type="number" step="0.01" placeholder="Ej. 350" value={efectivoFisicoDeclarado} onChange={(e) => setEfectivoFisicoDeclarado(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Total Pagos QR Registrados (Incluye pagos en casa) (Bs):</label>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Total QR Registrados (Bs):</label>
                         <input type="number" step="0.01" placeholder="Ej. 100" value={qrFisicoDeclarado} onChange={(e) => setQrFisicoDeclarado(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
                       </div>
-                      <button type="submit" style={btnPrimaryStyle}>Enviar Arqueo a Dueño/Admin</button>
+                      <button type="submit" style={btnPrimaryStyle}>Enviar Arqueo</button>
                     </form>
                   </div>
 
                   <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3 style={{ marginTop: 0 }}>Historial de Arqueos Declarados</h3>
+                    <h3 style={{ marginTop: 0 }}>
+                      {usuarioAutenticado.rol === 'estilista' ? 'Mis Arqueos Realizados' : 'Historial de Arqueos'}
+                    </h3>
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
                             <th style={thStyle}>Turno</th>
                             <th style={thStyle}>Efectivo / QR</th>
-                            <th style={thStyle}>Diferencia</th>
                             <th style={thStyle}>Estado</th>
                             <th style={thStyle}>Acción</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {arqueos.map(a => (
-                            <tr key={a.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                              <td style={tdStyle}>{a.fecha} <br/><strong>{a.turno}</strong></td>
-                              <td style={tdStyle}>Efec: Bs {a.efectivoDeclarado} <br/>QR: Bs {a.qrRegistrado}</td>
-                              <td style={tdStyle}><strong style={{ color: a.diferencia === 0 ? '#059669' : '#DC2626' }}>Bs {a.diferencia}</strong></td>
-                              <td style={tdStyle}>{a.estado}</td>
-                              <td style={tdStyle}>
-                                {usuarioAutenticado.rol === 'gerencia' && a.estado.includes('PENDIENTE') && (
-                                  <button onClick={() => aprobarArqueo(a.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}>Aprobar</button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
+                          {arqueos
+                            .filter(a => usuarioAutenticado.rol !== 'estilista' || a.responsable === usuarioAutenticado.nombre)
+                            .map(a => (
+                              <tr key={a.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                                <td style={tdStyle}>{a.fecha} <br/><strong>{a.turno}</strong></td>
+                                <td style={tdStyle}>Efec: Bs {a.efectivoDeclarado} <br/>QR: Bs {a.qrRegistrado}</td>
+                                <td style={tdStyle}>{a.estado}</td>
+                                <td style={tdStyle}>
+                                  {usuarioAutenticado.rol === 'gerencia' && a.estado.includes('PENDIENTE') && (
+                                    <button onClick={() => aprobarArqueo(a.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}>Aprobar</button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
                         </tbody>
                       </table>
                     </div>
@@ -749,7 +756,9 @@
                   </div>
 
                   <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3 style={{ marginTop: 0 }}>Historial de Gastos</h3>
+                    <h3 style={{ marginTop: 0 }}>
+                      {usuarioAutenticado.rol === 'estilista' ? 'Gastos Registrados por Mí' : 'Historial de Gastos'}
+                    </h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#F5EBEE' }}>
@@ -759,13 +768,15 @@
                         </tr>
                       </thead>
                       <tbody>
-                        {gastos.map(g => (
-                          <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                            <td style={tdStyle}>{g.fecha} ({g.turno})</td>
-                            <td style={tdStyle}>{g.descripcion}</td>
-                            <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {g.monto.toFixed(2)}</strong></td>
-                          </tr>
-                        ))}
+                        {gastos
+                          .filter(g => usuarioAutenticado.rol !== 'estilista' || g.autorizado === usuarioAutenticado.nombre)
+                          .map(g => (
+                            <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}>{g.fecha} ({g.turno})</td>
+                              <td style={tdStyle}>{g.descripcion}</td>
+                              <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {g.monto.toFixed(2)}</strong></td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
@@ -773,12 +784,12 @@
               </div>
             )}
 
-            {/* LIMPIEZA Y DESCANSOS (ESTILO CALENDARIO ROTATIVO) */}
+            {/* LIMPIEZA Y DESCANSOS (VISIBLE PARA TODAS) */}
             {activoTab === 'limpieza' && (
               <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Asignación Dinámica de Limpieza y Descansos</h2>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Cronograma General de Limpieza y Descansos</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                  {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'recepcion') && (
+                  {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && (
                     <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
                       <h3 style={{ marginTop: 0 }}>Asignar Turno de Limpieza</h3>
                       <form onSubmit={guardarLimpieza} style={{ display: 'grid', gap: '14px' }}>
@@ -805,7 +816,7 @@
                         </div>
                         <div>
                           <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Detalle / Tarea:</label>
-                          <input type="text" placeholder="Ej. Limpieza de espejos y orden" value={limpiezaTarea} onChange={(e) => setLimpiezaTarea(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                          <input type="text" placeholder="Ej. Limpieza de espejos" value={limpiezaTarea} onChange={(e) => setLimpiezaTarea(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
                         </div>
                         <button type="submit" style={btnPrimaryStyle}>Guardar Asignación</button>
                       </form>
@@ -813,7 +824,7 @@
                   )}
 
                   <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3 style={{ marginTop: 0 }}>Cronograma Activo de Limpieza</h3>
+                    <h3 style={{ marginTop: 0 }}>Cronograma Activo (Visible para Todo el Personal)</h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
@@ -837,66 +848,11 @@
               </div>
             )}
 
-            {/* DESCUENTOS JUSTIFICADOS */}
-            {activoTab === 'descuentos' && (
-              <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Control de Descuentos Justificados</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-                  {usuarioAutenticado.rol === 'gerencia' && (
-                    <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                      <h3 style={{ marginTop: 0 }}>Aplicar Descuento a Personal</h3>
-                      <form onSubmit={guardarDescuento} style={{ display: 'grid', gap: '14px' }}>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Personal:</label>
-                          <select value={descPersonal} onChange={(e) => setDescPersonal(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                            {personal.filter(p => p.cargo === 'Estilista').map(p => (
-                              <option key={p.id} value={p.nombre}>{p.nombre}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Monto a Descontar (Bs):</label>
-                          <input type="number" step="0.01" placeholder="Ej. 30" value={descMonto} onChange={(e) => setDescMonto(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Motivo Justificado:</label>
-                          <input type="text" placeholder="Ej. Material dañado" value={descMotivo} onChange={(e) => setDescMotivo(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
-                        </div>
-                        <button type="submit" style={btnPrimaryStyle}>Registrar Descuento</button>
-                      </form>
-                    </div>
-                  )}
-
-                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                    <h3 style={{ marginTop: 0 }}>Registro de Descuentos Aplicados</h3>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                      <thead>
-                        <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                          <th style={thStyle}>Personal</th>
-                          <th style={thStyle}>Motivo</th>
-                          <th style={thStyle}>Monto</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {descuentos.map(d => (
-                          <tr key={d.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                            <td style={tdStyle}><strong>{d.personal}</strong></td>
-                            <td style={tdStyle}>{d.motivo}</td>
-                            <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {d.monto.toFixed(2)}</strong></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* COMISIONES (SOLO MONTO NETO) */}
             {activoTab === 'comisiones' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>
-                  {usuarioAutenticado.rol === 'estilista' ? `Mi Ganancia Neta (${usuarioAutenticado.nombre})` : 'Liquidación de Comisiones'}
+                  {usuarioAutenticado.rol === 'estilista' ? `Mi Ganancia Neta (${usuarioAutenticado.nombre})` : 'Liquidación de Comisiones Netas'}
                 </h2>
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', padding: '16px', overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
@@ -904,7 +860,7 @@
                       <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
                         <th style={thStyle}>Estilista</th>
                         <th style={thStyle}>Servicios Atendidos</th>
-                        <th style={thStyle}>Monto Total a Cobrar (Comisión Neta)</th>
+                        <th style={thStyle}>Monto Total Neto a Cobrar</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -920,7 +876,7 @@
                             <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
                               <td style={tdStyle}><strong>{p.nombre}</strong></td>
                               <td style={tdStyle}>{citas.filter(c => c.personal === p.nombre).length} servicios</td>
-                              <td style={tdStyle}><strong style={{ color: '#059669', fontSize: '18px' }}>Bs {netoFinal.toFixed(2)}</strong> <span style={{ fontSize: '12px', color: '#666' }}>(Desc: Bs {totalDescuentos})</span></td>
+                              <td style={tdStyle}><strong style={{ color: '#059669', fontSize: '18px' }}>Bs {netoFinal.toFixed(2)}</strong></td>
                             </tr>
                           );
                         })}
@@ -930,12 +886,56 @@
               </div>
             )}
 
-            {/* PESTAÑA DE AUTORIZACIONES PARA EL PERSONAL */}
+            {/* RECOMENDACIONES Y COMENTARIOS DEL DUEÑO */}
+            {activoTab === 'recomendaciones' && (
+              <div>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Recomendaciones y Comentarios Gerenciales</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                  {usuarioAutenticado.rol === 'gerencia' && (
+                    <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                      <h3 style={{ marginTop: 0 }}>Enviar Comentario a Estilista</h3>
+                      <form onSubmit={guardarRecomendacion} style={{ display: 'grid', gap: '14px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Estilista Destinataria:</label>
+                          <select value={recEstilista} onChange={(e) => setRecEstilista(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                            {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                              <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Mensaje / Recomendación:</label>
+                          <textarea rows="4" placeholder="Ej. Buen trabajo esta semana..." value={recMensaje} onChange={(e) => setRecMensaje(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                        <button type="submit" style={btnPrimaryStyle}>Enviar Mensaje Privado</button>
+                      </form>
+                    </div>
+                  )}
+
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>
+                      {usuarioAutenticado.rol === 'estilista' ? `Mis Comentarios (${usuarioAutenticado.nombre})` : 'Bandeja de Comentarios'}
+                    </h3>
+                    <div style={{ display: 'grid', gap: '12px' }}>
+                      {recomendaciones
+                        .filter(r => usuarioAutenticado.rol !== 'estilista' || r.estilista === usuarioAutenticado.nombre)
+                        .map(r => (
+                          <div key={r.id} style={{ padding: '14px', backgroundColor: '#F9F8F6', borderRadius: '6px', borderLeft: '4px solid #E8C5C8', border: '1px solid #E2DDD5' }}>
+                            <div style={{ fontSize: '12px', fontWeight: '700', color: '#D97706', marginBottom: '4px' }}>Para: {r.estilista} • {r.fecha}</div>
+                            <p style={{ margin: 0, fontSize: '14px', color: '#333' }}>{r.mensaje}</p>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PESTAÑA DE SOLICITUDES / AUTORIZACIONES */}
             {activoTab === 'misAutorizaciones' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Panel de Solicitudes y Autorizaciones</h2>
                 <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                  <p style={{ fontSize: '14px', color: '#555', marginBottom: '16px' }}>Aquí el personal puede ver el estado de sus solicitudes para modificar asistencias repetidas u otros permisos:</p>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
@@ -943,23 +943,25 @@
                         <th style={thStyle}>Tipo</th>
                         <th style={thStyle}>Detalle</th>
                         <th style={thStyle}>Estado</th>
-                        <th style={thStyle}>Acción (Dueño/Admin)</th>
+                        <th style={thStyle}>Acción</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {autorizaciones.map(a => (
-                        <tr key={a.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                          <td style={tdStyle}><strong>{a.solicitante}</strong></td>
-                          <td style={tdStyle}>{a.tipo}</td>
-                          <td style={tdStyle}>{a.detalle}</td>
-                          <td style={tdStyle}>{a.estado}</td>
-                          <td style={tdStyle}>
-                            {usuarioAutenticado.rol === 'gerencia' && a.estado === 'PENDIENTE' && (
-                              <button onClick={() => aprobarAutorizacion(a.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}>Aprobar Solicitud</button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                      {autorizaciones
+                        .filter(a => (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') || a.solicitante === usuarioAutenticado.nombre)
+                        .map(a => (
+                          <tr key={a.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                            <td style={tdStyle}><strong>{a.solicitante}</strong></td>
+                            <td style={tdStyle}>{a.tipo}</td>
+                            <td style={tdStyle}>{a.detalle}</td>
+                            <td style={tdStyle}>{a.estado}</td>
+                            <td style={tdStyle}>
+                              {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && a.estado === 'PENDIENTE' && (
+                                <button onClick={() => aprobarAutorizacion(a.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}>Aprobar</button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                 </div>
