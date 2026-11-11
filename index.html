@@ -22,71 +22,117 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState } = React;
+    const { useState, useEffect } = React;
 
     function MerakiBeautySaaS() {
-      const [usuarioAutenticado, setUsuarioAutenticado] = useState(null);
+      const [usuarioAutenticado, setUsuarioAutenticado] = useState(() => {
+        const saved = localStorage.getItem('meraki_usuario');
+        return saved ? JSON.parse(saved) : null;
+      });
+
       const [rolSeleccionadoLogin, setRolSeleccionadoLogin] = useState('estilista');
       const [estilistaLogin, setEstilistaLogin] = useState('Sarela');
       const [pinLogin, setPinLogin] = useState('');
       const [errorLogin, setErrorLogin] = useState('');
 
-      const [personal, setPersonal] = useState([
-        { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, pin: '1111', horario: 'Mañana (09:00 - 14:00)' },
-        { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, pin: '2222', horario: 'Tarde (14:00 - 20:00)' },
-        { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, pin: '3333', horario: 'Completo (09:00 - 19:00)' },
-        { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, pin: '4444', horario: 'Mañana (09:00 - 14:00)' },
-        { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, pin: '5555', horario: 'Tarde (14:00 - 20:00)' },
-        { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, pin: '6666', horario: 'Completo (09:00 - 19:00)' },
-        { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, pin: '7777', horario: 'Mañana (09:00 - 14:00)' },
-        { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, pin: '2026', horario: 'Completo (09:00 - 19:00)' },
-      ]);
+      const [personal, setPersonal] = useState(() => {
+        const saved = localStorage.getItem('meraki_personal');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, pin: '1111', horario: 'Mañana (09:00 - 14:00)' },
+          { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, pin: '2222', horario: 'Tarde (14:00 - 20:00)' },
+          { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, pin: '3333', horario: 'Completo (09:00 - 19:00)' },
+          { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, pin: '4444', horario: 'Mañana (09:00 - 14:00)' },
+          { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, pin: '5555', horario: 'Tarde (14:00 - 20:00)' },
+          { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, pin: '6666', horario: 'Completo (09:00 - 19:00)' },
+          { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, pin: '7777', horario: 'Mañana (09:00 - 14:00)' },
+          { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, pin: '2026', horario: 'Completo (09:00 - 19:00)' },
+        ];
+      });
 
-      const [servicios, setServicios] = useState([
-        { id: 1, nombre: 'Maquillaje y Peinado', precio: 150.00, comisionPorc: 50 },
-        { id: 2, nombre: 'Bomba Capilar', precio: 120.00, comisionPorc: 50 },
-        { id: 3, nombre: 'Cortes', precio: 60.00, comisionPorc: 50 },
-        { id: 4, nombre: 'Laminado', precio: 180.00, comisionPorc: 50 },
-        { id: 5, nombre: 'Pestañas', precio: 200.00, comisionPorc: 50 },
-      ]);
+      const [servicios, setServicios] = useState(() => {
+        const saved = localStorage.getItem('meraki_servicios');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, nombre: 'Maquillaje y Peinado', precio: 150.00, comisionPorc: 50 },
+          { id: 2, nombre: 'Bomba Capilar', precio: 120.00, comisionPorc: 50 },
+          { id: 3, nombre: 'Cortes', precio: 60.00, comisionPorc: 50 },
+          { id: 4, nombre: 'Laminado', precio: 180.00, comisionPorc: 50 },
+          { id: 5, nombre: 'Pestañas', precio: 200.00, comisionPorc: 50 },
+        ];
+      });
 
-      const [citas, setCitas] = useState([
-        { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', precio: 120, adelanto: 50, metodoAdelanto: 'QR (Casa)', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad', modificadoAsistencia: false },
-        { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió', modificadoAsistencia: false },
-      ]);
+      const [citas, setCitas] = useState(() => {
+        const saved = localStorage.getItem('meraki_citas');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', precio: 120, adelanto: 50, metodoAdelanto: 'QR (Casa)', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad', modificadoAsistencia: false },
+          { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió', modificadoAsistencia: false },
+        ];
+      });
 
-      const [gastos, setGastos] = useState([
-        { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar', turno: 'Mañana', estado: '🟢 APROBADO' }
-      ]);
+      const [gastos, setGastos] = useState(() => {
+        const saved = localStorage.getItem('meraki_gastos');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar', turno: 'Mañana', estado: '🟢 APROBADO' }
+        ];
+      });
 
-      const [arqueos, setArqueos] = useState([
-        { id: 1, fecha: '2026-11-10', turno: 'Mañana', efectivoDeclarado: 350, qrRegistrado: 50, totalIngresosSist: 400, totalGastos: 85, diferencia: 0, estado: '🟢 APROBADO', responsable: 'Manuel Aguilar' }
-      ]);
+      const [arqueos, setArqueos] = useState(() => {
+        const saved = localStorage.getItem('meraki_arqueos');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, fecha: '2026-11-10', turno: 'Mañana', efectivoDeclarado: 350, qrRegistrado: 50, totalIngresosSist: 400, totalGastos: 85, diferencia: 0, estado: '🟢 APROBADO', responsable: 'Manuel Aguilar' }
+        ];
+      });
 
-      const [limpiezaDescansos, setLimpiezaDescansos] = useState([
-        { id: 1, fecha: '2026-11-10', persona: 'Sarela', turno: 'Mañana', tarea: 'Limpieza general de espejos y tocadores' },
-        { id: 2, fecha: '2026-11-11', persona: 'Karen', turno: 'Tarde', tarea: 'Desinfección de lavabos y administración' },
-      ]);
+      const [limpiezaDescansos, setLimpiezaDescansos] = useState(() => {
+        const saved = localStorage.getItem('meraki_limpieza');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, fecha: '2026-11-10', persona: 'Sarela', turno: 'Mañana', tarea: 'Limpieza general de espejos y tocadores' },
+          { id: 2, fecha: '2026-11-11', persona: 'Karen', turno: 'Tarde', tarea: 'Desinfección de lavabos y administración' },
+        ];
+      });
 
-      const [descuentos, setDescuentos] = useState([
-        { id: 1, fecha: '2026-11-10', personal: 'Karen', monto: 20, motivo: 'Material dañado por descuido', estado: '🟢 APROBADO' }
-      ]);
+      const [descuentos, setDescuentos] = useState(() => {
+        const saved = localStorage.getItem('meraki_descuentos');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, fecha: '2026-11-10', personal: 'Karen', monto: 20, motivo: 'Material dañado por descuido', estado: '🟢 APROBADO' }
+        ];
+      });
 
-      const [autorizaciones, setAutorizaciones] = useState([
-        { id: 1, solicitante: 'Sarela', tipo: 'Modificar asistencia por segunda vez', detalle: 'Clienta llegó tarde pero avisó', estado: 'PENDIENTE' }
-      ]);
+      const [autorizaciones, setAutorizaciones] = useState(() => {
+        const saved = localStorage.getItem('meraki_autorizaciones');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, solicitante: 'Sarela', tipo: 'Modificar asistencia por segunda vez', detalle: 'Clienta llegó tarde pero avisó', estado: 'PENDIENTE' }
+        ];
+      });
 
-      const [recomendaciones, setRecomendaciones] = useState([
-        { id: 1, estilista: 'Sarela', mensaje: '¡Excelente trabajo con las bombas capilares esta semana, Sarela! Sigue así.', fecha: '2026-11-10' }
-      ]);
+      const [recomendaciones, setRecomendaciones] = useState(() => {
+        const saved = localStorage.getItem('meraki_recomendaciones');
+        return saved ? JSON.parse(saved) : [
+          { id: 1, estilista: 'Sarela', mensaje: '¡Excelente trabajo con las bombas capilares esta semana, Sarela! Sigue así.', fecha: '2026-11-10' }
+        ];
+      });
+
+      // Sincronización automática con localStorage
+      useEffect(() => { localStorage.setItem('meraki_usuario', JSON.stringify(usuarioAutenticado)); }, [usuarioAutenticado]);
+      useEffect(() => { localStorage.setItem('meraki_personal', JSON.stringify(personal)); }, [personal]);
+      useEffect(() => { localStorage.setItem('meraki_servicios', JSON.stringify(servicios)); }, [servicios]);
+      useEffect(() => { localStorage.setItem('meraki_citas', JSON.stringify(citas)); }, [citas]);
+      useEffect(() => { localStorage.setItem('meraki_gastos', JSON.stringify(gastos)); }, [gastos]);
+      useEffect(() => { localStorage.setItem('meraki_arqueos', JSON.stringify(arqueos)); }, [arqueos]);
+      useEffect(() => { localStorage.setItem('meraki_limpieza', JSON.stringify(limpiezaDescansos)); }, [limpiezaDescansos]);
+      useEffect(() => { localStorage.setItem('meraki_descuentos', JSON.stringify(descuentos)); }, [descuentos]);
+      useEffect(() => { localStorage.setItem('meraki_autorizaciones', JSON.stringify(autorizaciones)); }, [autorizaciones]);
+      useEffect(() => { localStorage.setItem('meraki_recomendaciones', JSON.stringify(recomendaciones)); }, [recomendaciones]);
 
       const [activoTab, setActivoTab] = useState('agendaMatriz');
       const [tipoReporte, setTipoReporte] = useState('financiero');
       const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-11-01');
       const [filtroFechaFin, setFiltroFechaFin] = useState('2026-11-30');
 
-      // Estado para navegación de Semanas en el Calendario
+      // Estado para navegación de Semanas en el Calendario y selector rápido de fecha
       const [fechaBaseCalendario, setFechaBaseCalendario] = useState(new Date('2026-11-10'));
+
+      // Estado para modal/edición de cita (Dueño / Admin)
+      const [citaEnEdicion, setCitaEnEdicion] = useState(null);
 
       // Formularios Dueño (Configuración)
       const [nuevoNombreTrabajadora, setNuevoNombreTrabajadora] = useState('');
@@ -210,7 +256,7 @@
         setPersonal(personal.map(p => p.id === id ? { ...p, comision: parseFloat(nuevaComision) / 100 } : p));
       };
 
-      // Funciones Operativas (Estilista o Admin agendan y aparece directo en el calendario)
+      // Funciones Operativas de Citas
       const agregarCita = (e) => {
         e.preventDefault();
         if (!nuevoCliente.trim()) return alert('Ingrese clienta.');
@@ -218,18 +264,19 @@
         const precioTotal = servicioObj ? servicioObj.precio : 100;
         const adelantoNum = parseFloat(nuevoAdelanto) || 0;
 
-        // Si agenda estilista, entra como pendiente de aprobación. Si admin/dueño, aprobado directo.
         const esAdminOGerente = usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion';
         const estadoCita = esAdminOGerente ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN (Por Admin/Dueño)';
 
-        setCitas([{
+        const estilistaAsignada = nuevaEstilista !== 'Por Asignar' ? nuevaEstilista : (usuarioAutenticado.rol === 'estilista' ? usuarioAutenticado.nombre : 'Por Asignar');
+
+        const nuevaCitaObj = {
           id: Date.now(),
           fecha: nuevaFecha,
           hora: nuevaHora,
           cliente: nuevoCliente,
           celular: nuevoCelular || 'S/N',
           servicio: nuevoServicio,
-          personal: nuevaEstilista !== 'Por Asignar' ? nuevaEstilista : (usuarioAutenticado.rol === 'estilista' ? usuarioAutenticado.nombre : 'Por Asignar'),
+          personal: estilistaAsignada,
           precio: precioTotal, 
           adelanto: adelantoNum,
           metodoAdelanto: nuevoMetodoAdelanto,
@@ -237,7 +284,9 @@
           estado: estadoCita,
           asistencia: 'Sin Novedad',
           modificadoAsistencia: false
-        }, ...citas]);
+        };
+
+        setCitas(prevCitas => [nuevaCitaObj, ...prevCitas]);
 
         setNuevoCliente('');
         setNuevoCelular('');
@@ -248,6 +297,21 @@
 
       const aprobarCita = (id) => {
         setCitas(citas.map(c => c.id === id ? { ...c, estado: '🟢 APROBADO' } : c));
+      };
+
+      const eliminarCita = (id) => {
+        if (confirm('¿Está seguro de eliminar esta cita permanentemente?')) {
+          setCitas(citas.filter(c => c.id !== id));
+          setCitaEnEdicion(null);
+        }
+      };
+
+      const guardarEdicionCita = (e) => {
+        e.preventDefault();
+        if (!citaEnEdicion) return;
+        setCitas(citas.map(c => c.id === citaEnEdicion.id ? citaEnEdicion : c));
+        setCitaEnEdicion(null);
+        alert('¡Cita actualizada con éxito!');
       };
 
       const solicitarCambioAsistencia = (id, nuevaAsistencia) => {
@@ -358,11 +422,11 @@
         setAutorizaciones(autorizaciones.map(a => a.id === id ? { ...a, estado: '🟢 APROBADO' } : a));
       };
 
-      // Funciones para calcular los 7 días de Lunes a Domingo según la semana seleccionada
+      // Cálculo de los 7 días de Lunes a Domingo según la fecha base
       const obtenerDiasDeLaSemana = (fechaBase) => {
         const d = new Date(fechaBase);
-        const diaSemana = d.getDay(); // 0 es Domingo, 1 es Lunes...
-        const diff = d.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); // Ajustar a Lunes
+        const diaSemana = d.getDay(); 
+        const diff = d.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); 
         const lunes = new Date(d.setDate(diff));
 
         const dias = [];
@@ -828,16 +892,29 @@
               </div>
             )}
 
-            {/* CALENDARIO MATRIZ MEJORADO CON NAVEGACIÓN DE SEMANAS Y DÍAS LUNES A DOMINGO */}
+            {/* CALENDARIO MATRIZ CON SELECTOR RÁPIDO DE FECHA (CALENDARIO PEQUEÑO) */}
             {activoTab === 'agendaMatriz' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px', backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
                   <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Calendario Matriz Semanal (Lunes a Domingo)</h2>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <button onClick={() => cambiarSemana(-1)} style={{ backgroundColor: '#1A1A1A', color: '#FFF', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>◀ Semana Anterior</button>
-                    <button onClick={() => setFechaBaseCalendario(new Date('2026-11-10'))} style={{ backgroundColor: '#E8C5C8', color: '#1A1A1A', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '700' }}>Hoy</button>
-                    <button onClick={() => cambiarSemana(1)} style={{ backgroundColor: '#1A1A1A', color: '#FFF', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Semana Siguiente ▶</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    {/* Selector rápido de fecha (Mini Calendario integrado) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <label style={{ fontSize: '13px', fontWeight: '600' }}>Ir a Fecha:</label>
+                      <input 
+                        type="date" 
+                        value={fechaBaseCalendario.toISOString().split('T')[0]} 
+                        onChange={(e) => {
+                          if (e.target.value) setFechaBaseCalendario(new Date(e.target.value));
+                        }} 
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #E2DDD5', fontSize: '13px' }} 
+                      />
+                    </div>
+
+                    <button onClick={() => cambiarSemana(-1)} style={{ backgroundColor: '#1A1A1A', color: '#FFF', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>◀ Sem. Anterior</button>
+                    <button onClick={() => setFechaBaseCalendario(new Date())} style={{ backgroundColor: '#E8C5C8', color: '#1A1A1A', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '700' }}>Hoy</button>
+                    <button onClick={() => cambiarSemana(1)} style={{ backgroundColor: '#1A1A1A', color: '#FFF', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Sem. Siguiente ▶</button>
                     <button onClick={() => setActivoTab('nuevaCita')} style={btnPrimaryStyle}>+ Agendar Cita</button>
                   </div>
                 </div>
@@ -868,11 +945,23 @@
                                     <div style={{ color: '#555' }}>💇‍♀️ {c.servicio} <span style={{ fontSize: '11px', color: '#888' }}>(Bs {c.precio})</span></div>
                                     <div style={{ fontSize: '11px', marginTop: '2px' }}>Estado: <strong>{c.estado}</strong></div>
                                     
-                                    {/* Aprobación rápida para Admin / Dueño si está pendiente */}
+                                    {/* Botón de aprobación rápida para Dueño / Admin */}
                                     {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && c.estado.includes('PENDIENTE') && (
                                       <button onClick={() => aprobarCita(c.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: '700', marginTop: '4px', width: '100%' }}>
                                         ✔️ Aprobar Cita
                                       </button>
+                                    )}
+
+                                    {/* Botón de Modificar / Eliminar para Dueño o Admin */}
+                                    {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && (
+                                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                                        <button onClick={() => setCitaEnEdicion({ ...c })} style={{ flex: 1, backgroundColor: '#2563EB', color: '#FFF', border: 'none', padding: '2px 4px', borderRadius: '3px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' }}>
+                                          ✏️ Editar
+                                        </button>
+                                        <button onClick={() => eliminarCita(c.id)} style={{ flex: 1, backgroundColor: '#DC2626', color: '#FFF', border: 'none', padding: '2px 4px', borderRadius: '3px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' }}>
+                                          🗑️ Borrar
+                                        </button>
+                                      </div>
                                     )}
 
                                     <div style={{ marginTop: '4px', fontSize: '11px' }}>
@@ -907,6 +996,50 @@
                     </tbody>
                   </table>
                 </div>
+
+                {/* MODAL DE EDICIÓN DE CITA (PARA DUEÑO/ADMIN) */}
+                {citaEnEdicion && (
+                  <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+                    <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', width: '100%', maxWidth: '450px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                      <h3 style={{ marginTop: 0, borderLeft: '4px solid #E8C5C8', paddingLeft: '8px' }}>Modificar Cita</h3>
+                      <form onSubmit={guardarEdicionCita} style={{ display: 'grid', gap: '12px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Clienta:</label>
+                          <input type="text" value={citaEnEdicion.cliente} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, cliente: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Fecha:</label>
+                            <input type="date" value={citaEnEdicion.fecha} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, fecha: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Hora:</label>
+                            <input type="time" value={citaEnEdicion.hora} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, hora: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Precio (Bs):</label>
+                            <input type="number" step="0.01" value={citaEnEdicion.precio} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, precio: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Estilista:</label>
+                            <select value={citaEnEdicion.personal} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, personal: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                              <option value="Por Asignar">Por Asignar</option>
+                              {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                                <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                          <button type="submit" style={{ flex: 1, backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '10px', borderRadius: '4px', fontWeight: '700', cursor: 'pointer' }}>Guardar Cambios</button>
+                          <button type="button" onClick={() => setCitaEnEdicion(null)} style={{ flex: 1, backgroundColor: '#6B7280', color: '#FFF', border: 'none', padding: '10px', borderRadius: '4px', fontWeight: '700', cursor: 'pointer' }}>Cancelar</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
