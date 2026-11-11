@@ -56,7 +56,7 @@
       ]);
 
       const [gastos, setGastos] = useState([
-        { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar', turno: 'Mañana' }
+        { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar', turno: 'Mañana', estado: '🟢 APROBADO' }
       ]);
 
       const [arqueos, setArqueos] = useState([
@@ -111,11 +111,6 @@
       const [limpiezaPersona, setLimpiezaPersona] = useState('Sarela');
       const [limpiezaTurno, setLimpiezaTurno] = useState('Mañana');
       const [limpiezaTarea, setLimpiezaTarea] = useState('');
-
-      // Formulario Descuentos
-      const [descPersonal, setDescPersonal] = useState('Sarela');
-      const [descMonto, setDescMonto] = useState('');
-      const [descMotivo, setDescMotivo] = useState('');
 
       // Formulario Recomendaciones
       const [recEstilista, setRecEstilista] = useState('Sarela');
@@ -259,11 +254,16 @@
           categoria: nuevoGastoCat,
           monto: parseFloat(nuevoGastoMonto),
           autorizado: usuarioAutenticado.nombre,
-          turno: nuevoGastoTurno
+          turno: nuevoGastoTurno,
+          estado: (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN'
         }]);
         setNuevoGastoDesc('');
         setNuevoGastoMonto('');
-        alert('Gasto registrado correctamente.');
+        alert('Gasto registrado (pendiente de aprobación gerencial si fue registrado por staff).');
+      };
+
+      const aprobarGasto = (id) => {
+        setGastos(gastos.map(g => g.id === id ? { ...g, estado: '🟢 APROBADO' } : g));
       };
 
       const guardarLimpieza = (e) => {
@@ -300,7 +300,7 @@
       const citasFiltradas = citas.filter(c => c.fecha >= filtroFechaInicio && c.fecha <= filtroFechaFin);
       const gastosFiltrados = gastos.filter(g => g.fecha >= filtroFechaInicio && g.fecha <= filtroFechaFin);
       const totalIngresos = citasFiltradas.reduce((acc, c) => acc + c.precio, 0);
-      const totalGastos = gastosFiltrados.reduce((acc, g) => acc + g.monto, 0);
+      const totalGastos = gastosFiltrados.filter(g => g.estado === '🟢 APROBADO').reduce((acc, g) => acc + g.monto, 0);
       const totalComisiones = personal.reduce((acc, p) => {
         const ventasPersonal = citasFiltradas.filter(c => c.personal === p.nombre).reduce((sum, c) => sum + c.precio, 0);
         return acc + (ventasPersonal * p.comision);
@@ -440,7 +440,7 @@
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                         <TarjetaKPI titulo="Total Ingresos Brutos" valor={`Bs ${totalIngresos.toFixed(2)}`} color="#1A1A1A" />
                         <TarjetaKPI titulo="Comisiones Totales Personal" valor={`Bs ${totalComisiones.toFixed(2)}`} color="#D97706" />
-                        <TarjetaKPI titulo="Gastos Operativos" valor={`Bs ${totalGastos.toFixed(2)}`} color="#DC2626" />
+                        <TarjetaKPI titulo="Gastos Operativos Aprobados" valor={`Bs ${totalGastos.toFixed(2)}`} color="#DC2626" />
                         <TarjetaKPI titulo="Utilidad Neta Estimada" valor={`Bs ${utilidadNeta.toFixed(2)}`} color="#059669" />
                       </div>
                     </div>
@@ -538,7 +538,7 @@
               </div>
             )}
 
-            {/* CALENDARIO MATRIZ (ESTILO WINDOWS / MULTI-CITA POR HORA) */}
+            {/* CALENDARIO MATRIZ */}
             {activoTab === 'agendaMatriz' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -569,7 +569,6 @@
                                     <div style={{ fontWeight: '700', color: '#1A1A1A', fontSize: '13px' }}>{c.cliente}</div>
                                     <div style={{ color: '#555' }}>💇‍♀️ {c.servicio}</div>
                                     
-                                    {/* Selector de estilista restringido: Solo Dueño y Administración pueden asignar o editar estilistas libremente */}
                                     <div style={{ marginTop: '4px', fontSize: '11px' }}>
                                       Estilista: 
                                       {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') ? (
@@ -584,7 +583,6 @@
                                       )}
                                     </div>
 
-                                    {/* Control de Asistencia */}
                                     <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                       <select value={c.asistencia} onChange={(e) => solicitarCambioAsistencia(c.id, e.target.value)} style={{ fontSize: '10px', padding: '2px' }}>
                                         <option value="Sin Novedad">Sin Novedad</option>
@@ -726,7 +724,7 @@
               </div>
             )}
 
-            {/* GASTOS */}
+            {/* GASTOS (CON APROBACIÓN REQUERIDA Y VISIBILIDAD SEGMENTADA) */}
             {activoTab === 'gastos' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Gastos Operativos</h2>
@@ -757,14 +755,15 @@
 
                   <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
                     <h3 style={{ marginTop: 0 }}>
-                      {usuarioAutenticado.rol === 'estilista' ? 'Gastos Registrados por Mí' : 'Historial de Gastos'}
+                      {usuarioAutenticado.rol === 'estilista' ? 'Mis Gastos Registrados' : 'Historial y Aprobación de Gastos'}
                     </h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#F5EBEE' }}>
-                          <th style={thStyle}>Turno</th>
+                          <th style={thStyle}>Turno/Autorizado</th>
                           <th style={thStyle}>Descripción</th>
                           <th style={thStyle}>Monto</th>
+                          <th style={thStyle}>Estado</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -772,9 +771,15 @@
                           .filter(g => usuarioAutenticado.rol !== 'estilista' || g.autorizado === usuarioAutenticado.nombre)
                           .map(g => (
                             <tr key={g.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                              <td style={tdStyle}>{g.fecha} ({g.turno})</td>
+                              <td style={tdStyle}>{g.fecha} ({g.turno})<br/><span style={{ fontSize: '11px', color: '#666' }}>{g.autorizado}</span></td>
                               <td style={tdStyle}>{g.descripcion}</td>
                               <td style={tdStyle}><strong style={{ color: '#DC2626' }}>Bs {g.monto.toFixed(2)}</strong></td>
+                              <td style={tdStyle}>
+                                {g.estado}
+                                {usuarioAutenticado.rol === 'gerencia' && g.estado.includes('PENDIENTE') && (
+                                  <button onClick={() => aprobarGasto(g.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', marginLeft: '6px', fontWeight: '700' }}>Aprobar</button>
+                                )}
+                              </td>
                             </tr>
                           ))}
                       </tbody>
