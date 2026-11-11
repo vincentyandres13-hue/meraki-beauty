@@ -85,6 +85,9 @@
       const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-11-01');
       const [filtroFechaFin, setFiltroFechaFin] = useState('2026-11-30');
 
+      // Estado para navegación de Semanas en el Calendario
+      const [fechaBaseCalendario, setFechaBaseCalendario] = useState(new Date('2026-11-10'));
+
       // Formularios Dueño (Configuración)
       const [nuevoNombreTrabajadora, setNuevoNombreTrabajadora] = useState('');
       const [nuevoCargoTrabajadora, setNuevoCargoTrabajadora] = useState('Estilista');
@@ -207,13 +210,17 @@
         setPersonal(personal.map(p => p.id === id ? { ...p, comision: parseFloat(nuevaComision) / 100 } : p));
       };
 
-      // Funciones operativas estándar (Congela precio al momento de la cita)
+      // Funciones Operativas (Estilista o Admin agendan y aparece directo en el calendario)
       const agregarCita = (e) => {
         e.preventDefault();
         if (!nuevoCliente.trim()) return alert('Ingrese clienta.');
         const servicioObj = servicios.find(s => s.nombre === nuevoServicio);
         const precioTotal = servicioObj ? servicioObj.precio : 100;
         const adelantoNum = parseFloat(nuevoAdelanto) || 0;
+
+        // Si agenda estilista, entra como pendiente de aprobación. Si admin/dueño, aprobado directo.
+        const esAdminOGerente = usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion';
+        const estadoCita = esAdminOGerente ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN (Por Admin/Dueño)';
 
         setCitas([{
           id: Date.now(),
@@ -222,12 +229,12 @@
           cliente: nuevoCliente,
           celular: nuevoCelular || 'S/N',
           servicio: nuevoServicio,
-          personal: nuevaEstilista,
+          personal: nuevaEstilista !== 'Por Asignar' ? nuevaEstilista : (usuarioAutenticado.rol === 'estilista' ? usuarioAutenticado.nombre : 'Por Asignar'),
           precio: precioTotal, 
           adelanto: adelantoNum,
           metodoAdelanto: nuevoMetodoAdelanto,
           saldo: (precioTotal - adelantoNum) > 0 ? (precioTotal - adelantoNum) : 0,
-          estado: (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN',
+          estado: estadoCita,
           asistencia: 'Sin Novedad',
           modificadoAsistencia: false
         }, ...citas]);
@@ -235,8 +242,12 @@
         setNuevoCliente('');
         setNuevoCelular('');
         setNuevoAdelanto('');
-        alert('¡Cita registrada con éxito!');
+        alert('¡Cita registrada con éxito y reflejada en el calendario!');
         setActivoTab('agendaMatriz');
+      };
+
+      const aprobarCita = (id) => {
+        setCitas(citas.map(c => c.id === id ? { ...c, estado: '🟢 APROBADO' } : c));
       };
 
       const solicitarCambioAsistencia = (id, nuevaAsistencia) => {
@@ -347,6 +358,37 @@
         setAutorizaciones(autorizaciones.map(a => a.id === id ? { ...a, estado: '🟢 APROBADO' } : a));
       };
 
+      // Funciones para calcular los 7 días de Lunes a Domingo según la semana seleccionada
+      const obtenerDiasDeLaSemana = (fechaBase) => {
+        const d = new Date(fechaBase);
+        const diaSemana = d.getDay(); // 0 es Domingo, 1 es Lunes...
+        const diff = d.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); // Ajustar a Lunes
+        const lunes = new Date(d.setDate(diff));
+
+        const dias = [];
+        const nombresDias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+        for (let i = 0; i < 7; i++) {
+          const diaActual = new Date(lunes);
+          diaActual.setDate(lunes.getDate() + i);
+          const fechaStr = diaActual.toISOString().split('T')[0];
+          dias.push({
+            nombre: nombresDias[i],
+            fechaStr: fechaStr,
+            etiqueta: `${nombresDias[i]} ${diaActual.getDate()}/${diaActual.getMonth() + 1}`
+          });
+        }
+        return dias;
+      };
+
+      const cambiarSemana = (direccion) => {
+        const nueva = new Date(fechaBaseCalendario);
+        nueva.setDate(nueva.getDate() + (direccion * 7));
+        setFechaBaseCalendario(nueva);
+      };
+
+      const diasMatriz = obtenerDiasDeLaSemana(fechaBaseCalendario);
+
       const citasFiltradas = citas.filter(c => c.fecha >= filtroFechaInicio && c.fecha <= filtroFechaFin);
       const gastosFiltrados = gastos.filter(g => g.fecha >= filtroFechaInicio && g.fecha <= filtroFechaFin);
       const totalIngresos = citasFiltradas.reduce((acc, c) => acc + c.precio, 0);
@@ -358,7 +400,6 @@
       const utilidadNeta = totalIngresos - totalComisiones - totalGastos;
 
       const horasMatriz = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
-      const diasMatriz = ['2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15', '2026-11-16'];
 
       if (!usuarioAutenticado) {
         return (
@@ -443,7 +484,7 @@
 
           <main style={{ maxWidth: '1300px', margin: '24px auto', padding: '0 16px' }}>
 
-            {/* REPORTE GERENCIAL AVANZADO Y DETALLADO */}
+            {/* REPORTE GERENCIAL */}
             {activoTab === 'reportes' && usuarioAutenticado.rol === 'gerencia' && (
               <div>
                 <div className="no-print" style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2DDD5', marginBottom: '24px' }}>
@@ -498,11 +539,9 @@
                     </div>
                   )}
 
-                  {/* NUEVO REPORTE DE PRODUCTIVIDAD DE LOS TRABAJADORES */}
                   {tipoReporte === 'productividad' && (
                     <div>
                       <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Métricas de Productividad por Trabajadora / Estilista</h2>
-                      <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>Evaluación de rendimiento basada en cantidad de servicios realizados, volumen de ventas generado y aporte a la utilidad del salón.</p>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
@@ -538,11 +577,9 @@
                     </div>
                   )}
 
-                  {/* NUEVO REPORTE DETALLADO DE INGRESOS Y SERVICIOS */}
                   {tipoReporte === 'ingresosDetalle' && (
                     <div>
                       <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Desglose Detallado de Ingresos por Servicios y Demanda</h2>
-                      <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>Identifique cuáles son los servicios más rentables y solicitados por las clientas.</p>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
@@ -791,21 +828,29 @@
               </div>
             )}
 
-            {/* CALENDARIO MATRIZ */}
+            {/* CALENDARIO MATRIZ MEJORADO CON NAVEGACIÓN DE SEMANAS Y DÍAS LUNES A DOMINGO */}
             {activoTab === 'agendaMatriz' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Calendario Matriz Semanal</h2>
-                  <button onClick={() => setActivoTab('nuevaCita')} style={btnPrimaryStyle}>+ Agendar Cita</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                  <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Calendario Matriz Semanal (Lunes a Domingo)</h2>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button onClick={() => cambiarSemana(-1)} style={{ backgroundColor: '#1A1A1A', color: '#FFF', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>◀ Semana Anterior</button>
+                    <button onClick={() => setFechaBaseCalendario(new Date('2026-11-10'))} style={{ backgroundColor: '#E8C5C8', color: '#1A1A1A', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '700' }}>Hoy</button>
+                    <button onClick={() => cambiarSemana(1)} style={{ backgroundColor: '#1A1A1A', color: '#FFF', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Semana Siguiente ▶</button>
+                    <button onClick={() => setActivoTab('nuevaCita')} style={btnPrimaryStyle}>+ Agendar Cita</button>
+                  </div>
                 </div>
 
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #E2DDD5', overflowX: 'auto', padding: '16px' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '900px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '1000px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#1A1A1A', color: '#FFF' }}>
-                        <th style={{ padding: '10px', border: '1px solid #444' }}>Hora</th>
+                        <th style={{ padding: '10px', border: '1px solid #444', width: '80px' }}>Hora</th>
                         {diasMatriz.map(dia => (
-                          <th key={dia} style={{ padding: '10px', border: '1px solid #444' }}>{dia}</th>
+                          <th key={dia.fechaStr} style={{ padding: '10px', border: '1px solid #444', textAlign: 'center' }}>
+                            {dia.etiqueta}
+                          </th>
                         ))}
                       </tr>
                     </thead>
@@ -814,14 +859,22 @@
                         <tr key={hora}>
                           <td style={{ padding: '10px', border: '1px solid #E2DDD5', fontWeight: '750', backgroundColor: '#F5EBEE', textAlign: 'center' }}>{hora}</td>
                           {diasMatriz.map(dia => {
-                            const citasEnEsaHora = citas.filter(c => c.fecha === dia && c.hora.startsWith(hora.substring(0, 2)));
+                            const citasEnEsaHora = citas.filter(c => c.fecha === dia.fechaStr && c.hora.startsWith(hora.substring(0, 2)));
                             return (
-                              <td key={dia} style={{ padding: '8px', border: '1px solid #E2DDD5', verticalAlign: 'top', minHeight: '80px', backgroundColor: citasEnEsaHora.length > 0 ? '#FFFBEB' : '#FFF' }}>
+                              <td key={dia.fechaStr} style={{ padding: '8px', border: '1px solid #E2DDD5', verticalAlign: 'top', minHeight: '90px', backgroundColor: citasEnEsaHora.length > 0 ? '#FFFBEB' : '#FFF' }}>
                                 {citasEnEsaHora.map(c => (
                                   <div key={c.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #D97706', borderRadius: '4px', padding: '6px', marginBottom: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                                     <div style={{ fontWeight: '700', color: '#1A1A1A', fontSize: '13px' }}>{c.cliente}</div>
                                     <div style={{ color: '#555' }}>💇‍♀️ {c.servicio} <span style={{ fontSize: '11px', color: '#888' }}>(Bs {c.precio})</span></div>
+                                    <div style={{ fontSize: '11px', marginTop: '2px' }}>Estado: <strong>{c.estado}</strong></div>
                                     
+                                    {/* Aprobación rápida para Admin / Dueño si está pendiente */}
+                                    {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && c.estado.includes('PENDIENTE') && (
+                                      <button onClick={() => aprobarCita(c.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: '700', marginTop: '4px', width: '100%' }}>
+                                        ✔️ Aprobar Cita
+                                      </button>
+                                    )}
+
                                     <div style={{ marginTop: '4px', fontSize: '11px' }}>
                                       Estilista: 
                                       {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') ? (
