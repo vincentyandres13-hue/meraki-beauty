@@ -32,22 +32,22 @@
       const [errorLogin, setErrorLogin] = useState('');
 
       const [personal, setPersonal] = useState([
-        { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, pin: '1111' },
-        { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, pin: '2222' },
-        { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, pin: '3333' },
-        { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, pin: '4444' },
-        { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, pin: '5555' },
-        { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, pin: '6666' },
-        { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, pin: '7777' },
-        { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, pin: '2026' },
+        { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, pin: '1111', horario: 'Mañana (09:00 - 14:00)' },
+        { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, pin: '2222', horario: 'Tarde (14:00 - 20:00)' },
+        { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, pin: '3333', horario: 'Completo (09:00 - 19:00)' },
+        { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, pin: '4444', horario: 'Mañana (09:00 - 14:00)' },
+        { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, pin: '5555', horario: 'Tarde (14:00 - 20:00)' },
+        { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, pin: '6666', horario: 'Completo (09:00 - 19:00)' },
+        { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, pin: '7777', horario: 'Mañana (09:00 - 14:00)' },
+        { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, pin: '2026', horario: 'Completo (09:00 - 19:00)' },
       ]);
 
       const [servicios, setServicios] = useState([
-        { id: 1, nombre: 'Maquillaje y Peinado', precio: 150.00 },
-        { id: 2, nombre: 'Bomba Capilar', precio: 120.00 },
-        { id: 3, nombre: 'Cortes', precio: 60.00 },
-        { id: 4, nombre: 'Laminado', precio: 180.00 },
-        { id: 5, nombre: 'Pestañas', precio: 200.00 },
+        { id: 1, nombre: 'Maquillaje y Peinado', precio: 150.00, comisionPorc: 50 },
+        { id: 2, nombre: 'Bomba Capilar', precio: 120.00, comisionPorc: 50 },
+        { id: 3, nombre: 'Cortes', precio: 60.00, comisionPorc: 50 },
+        { id: 4, nombre: 'Laminado', precio: 180.00, comisionPorc: 50 },
+        { id: 5, nombre: 'Pestañas', precio: 200.00, comisionPorc: 50 },
       ]);
 
       const [citas, setCitas] = useState([
@@ -85,7 +85,18 @@
       const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-11-01');
       const [filtroFechaFin, setFiltroFechaFin] = useState('2026-11-30');
 
-      // Formulario Nueva Cita
+      // Formularios Dueño (Configuración)
+      const [nuevoNombreTrabajadora, setNuevoNombreTrabajadora] = useState('');
+      const [nuevoCargoTrabajadora, setNuevoCargoTrabajadora] = useState('Estilista');
+      const [nuevoPinTrabajadora, setNuevoPinTrabajadora] = useState('');
+      const [nuevoComisionTrabajadora, setNuevoComisionTrabajadora] = useState('50');
+      const [nuevoHorarioTrabajadora, setNuevoHorarioTrabajadora] = useState('Mañana (09:00 - 14:00)');
+
+      const [nuevoServicioNombre, setNuevoServicioNombre] = useState('');
+      const [nuevoServicioPrecio, setNuevoServicioPrecio] = useState('');
+      const [nuevoServicioComision, setNuevoServicioComision] = useState('50');
+
+      // Formularios Operativos
       const [nuevaFecha, setNuevaFecha] = useState('2026-11-10');
       const [nuevaHora, setNuevaHora] = useState('11:00');
       const [nuevoCliente, setNuevoCliente] = useState('');
@@ -95,24 +106,20 @@
       const [nuevoAdelanto, setNuevoAdelanto] = useState('');
       const [nuevoMetodoAdelanto, setNuevoMetodoAdelanto] = useState('Efectivo');
 
-      // Formulario Arqueo
       const [arqueoTurno, setArqueoTurno] = useState('Mañana');
       const [efectivoFisicoDeclarado, setEfectivoFisicoDeclarado] = useState('');
       const [qrFisicoDeclarado, setQrFisicoDeclarado] = useState('');
 
-      // Formulario Gasto
       const [nuevoGastoDesc, setNuevoGastoDesc] = useState('');
       const [nuevoGastoMonto, setNuevoGastoMonto] = useState('');
       const [nuevoGastoCat, setNuevoGastoCat] = useState('Insumos');
       const [nuevoGastoTurno, setNuevoGastoTurno] = useState('Mañana');
 
-      // Formulario Limpieza
       const [limpiezaFecha, setLimpiezaFecha] = useState('2026-11-10');
       const [limpiezaPersona, setLimpiezaPersona] = useState('Sarela');
       const [limpiezaTurno, setLimpiezaTurno] = useState('Mañana');
       const [limpiezaTarea, setLimpiezaTarea] = useState('');
 
-      // Formulario Recomendaciones
       const [recEstilista, setRecEstilista] = useState('Sarela');
       const [recMensaje, setRecMensaje] = useState('');
 
@@ -153,6 +160,54 @@
         setErrorLogin('');
       };
 
+      // Funciones del Dueño / Gerencia
+      const agregarTrabajadora = (e) => {
+        e.preventDefault();
+        if (!nuevoNombreTrabajadora.trim() || !nuevoPinTrabajadora.trim()) return alert('Complete nombre y PIN.');
+        setPersonal([...personal, {
+          id: Date.now(),
+          nombre: nuevoNombreTrabajadora,
+          cargo: nuevoCargoTrabajadora,
+          pin: nuevoPinTrabajadora,
+          comision: parseFloat(nuevoComisionTrabajadora) / 100,
+          horario: nuevoHorarioTrabajadora
+        }]);
+        setNuevoNombreTrabajadora('');
+        setNuevoPinTrabajadora('');
+        alert('¡Trabajadora añadida con éxito!');
+      };
+
+      const agregarServicio = (e) => {
+        e.preventDefault();
+        if (!nuevoServicioNombre.trim() || !nuevoServicioPrecio) return alert('Complete nombre y precio.');
+        setServicios([...servicios, {
+          id: Date.now(),
+          nombre: nuevoServicioNombre,
+          precio: parseFloat(nuevoServicioPrecio),
+          comisionPorc: parseFloat(nuevoServicioComision)
+        }]);
+        setNuevoServicioNombre('');
+        setNuevoServicioPrecio('');
+        alert('¡Servicio agregado con éxito!');
+      };
+
+      const actualizarPrecioServicio = (id, nuevoPrecio) => {
+        setServicios(servicios.map(s => s.id === id ? { ...s, precio: parseFloat(nuevoPrecio) || 0 } : s));
+      };
+
+      const actualizarComisionServicio = (id, nuevaComision) => {
+        setServicios(servicios.map(s => s.id === id ? { ...s, comisionPorc: parseFloat(nuevaComision) || 0 } : s));
+      };
+
+      const actualizarHorario = (id, nuevoHorario) => {
+        setPersonal(personal.map(p => p.id === id ? { ...p, horario: nuevoHorario } : p));
+      };
+
+      const actualizarComisionPersonal = (id, nuevaComision) => {
+        setPersonal(personal.map(p => p.id === id ? { ...p, comision: parseFloat(nuevaComision) / 100 } : p));
+      };
+
+      // Funciones operativas estándar (Congela precio al momento de la cita)
       const agregarCita = (e) => {
         e.preventDefault();
         if (!nuevoCliente.trim()) return alert('Ingrese clienta.');
@@ -168,7 +223,7 @@
           celular: nuevoCelular || 'S/N',
           servicio: nuevoServicio,
           personal: nuevaEstilista,
-          precio: precioTotal,
+          precio: precioTotal, 
           adelanto: adelantoNum,
           metodoAdelanto: nuevoMetodoAdelanto,
           saldo: (precioTotal - adelantoNum) > 0 ? (precioTotal - adelantoNum) : 0,
@@ -207,18 +262,13 @@
       };
 
       const asignarEstilista = (id, nombreEstilista) => {
-        if (usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion' || usuarioAutenticado.rol === 'estilista') {
-          setCitas(citas.map(c => c.id === id ? { ...c, personal: nombreEstilista, estado: '🟢 APROBADO' } : c));
-        } else {
-          alert('No autorizado.');
-        }
+        setCitas(citas.map(c => c.id === id ? { ...c, personal: nombreEstilista, estado: '🟢 APROBADO' } : c));
       };
 
       const registrarArqueo = (e) => {
         e.preventDefault();
         const efec = parseFloat(efectivoFisicoDeclarado) || 0;
         const qr = parseFloat(qrFisicoDeclarado) || 0;
-
         const ingresosSist = citas.reduce((acc, c) => acc + c.adelanto, 0); 
         const gastosSist = gastos.reduce((acc, g) => acc + g.monto, 0);
 
@@ -237,7 +287,7 @@
 
         setEfectivoFisicoDeclarado('');
         setQrFisicoDeclarado('');
-        alert('¡Arqueo declarado y enviado a gerencia/administración!');
+        alert('¡Arqueo declarado!');
       };
 
       const aprobarArqueo = (id) => {
@@ -290,7 +340,7 @@
           fecha: new Date().toISOString().split('T')[0]
         }]);
         setRecMensaje('');
-        alert('¡Recomendación enviada con éxito a la estilista!');
+        alert('¡Recomendación enviada con éxito!');
       };
 
       const aprobarAutorizacion = (id) => {
@@ -376,7 +426,10 @@
 
           <nav className="no-print" style={{ backgroundColor: '#2D2D2D', padding: '0 24px', display: 'flex', gap: '8px', overflowX: 'auto' }}>
             {usuarioAutenticado.rol === 'gerencia' && (
-              <button onClick={() => setActivoTab('reportes')} style={tabStyle(activoTab === 'reportes')}>📊 Reportes</button>
+              <>
+                <button onClick={() => setActivoTab('reportes')} style={tabStyle(activoTab === 'reportes')}>📊 Reportes Gerenciales Pro</button>
+                <button onClick={() => setActivoTab('config')} style={tabStyle(activoTab === 'config')}>👑 Panel Dueños</button>
+              </>
             )}
             <button onClick={() => setActivoTab('agendaMatriz')} style={tabStyle(activoTab === 'agendaMatriz')}>📅 Calendario Matriz</button>
             <button onClick={() => setActivoTab('nuevaCita')} style={tabStyle(activoTab === 'nuevaCita')}>➕ Agendar Cita</button>
@@ -386,24 +439,23 @@
             <button onClick={() => setActivoTab('comisiones')} style={tabStyle(activoTab === 'comisiones')}>💵 Comisiones Netas</button>
             <button onClick={() => setActivoTab('recomendaciones')} style={tabStyle(activoTab === 'recomendaciones')}>⭐ Recomendaciones</button>
             <button onClick={() => setActivoTab('misAutorizaciones')} style={tabStyle(activoTab === 'misAutorizaciones')}>🔐 Solicitudes</button>
-            {usuarioAutenticado.rol === 'gerencia' && (
-              <button onClick={() => setActivoTab('config')} style={tabStyle(activoTab === 'config')}>⚙️ Personal & PINs</button>
-            )}
           </nav>
 
           <main style={{ maxWidth: '1300px', margin: '24px auto', padding: '0 16px' }}>
 
-            {/* REPORTE GERENCIAL */}
+            {/* REPORTE GERENCIAL AVANZADO Y DETALLADO */}
             {activoTab === 'reportes' && usuarioAutenticado.rol === 'gerencia' && (
               <div>
                 <div className="no-print" style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #E2DDD5', marginBottom: '24px' }}>
-                  <h3 style={{ margin: '0 0 16px 0', borderLeft: '4px solid #E8C5C8', paddingLeft: '8px' }}>Filtros de Reporte Gerencial</h3>
+                  <h3 style={{ margin: '0 0 16px 0', borderLeft: '4px solid #E8C5C8', paddingLeft: '8px' }}>Filtros Analíticos para Toma de Decisiones</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', alignItems: 'end' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Tipo de Reporte:</label>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Módulo de Reporte:</label>
                       <select value={tipoReporte} onChange={(e) => setTipoReporte(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E2DDD5', fontWeight: '600' }}>
-                        <option value="financiero">📈 Resumen Financiero Ejecutivo</option>
-                        <option value="estilistas">✂️ Rendimiento y Comisiones (Montos Netos)</option>
+                        <option value="financiero">📈 Resumen Ejecutivo & Utilidad</option>
+                        <option value="productividad">👩‍🎨 Productividad Detallada por Trabajadora</option>
+                        <option value="ingresosDetalle">💎 Análisis Detallado de Ingresos & Servicios</option>
+                        <option value="estilistas">💵 Liquidación de Comisiones Netas</option>
                         <option value="gastos">🧾 Desglose Consolidado de Gastos</option>
                         <option value="arqueos">💰 Auditoría de Arqueos de Turno</option>
                       </select>
@@ -426,29 +478,102 @@
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #1A1A1A', paddingBottom: '16px', marginBottom: '24px' }}>
                     <div>
                       <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '700' }}>MERAKI BEAUTY CENTER</h1>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#666' }}>Oruro, Bolivia • Informe Oficial Gerencial</p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#666' }}>Oruro, Bolivia • Informe Analítico Gerencial</p>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '12px', color: '#888', display: 'block' }}>Rango de Evaluación:</span>
+                      <span style={{ fontSize: '12px', color: '#888', display: 'block' }}>Rango Analizado:</span>
                       <strong style={{ fontSize: '14px' }}>{filtroFechaInicio} al {filtroFechaFin}</strong>
                     </div>
                   </div>
 
                   {tipoReporte === 'financiero' && (
                     <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>1. Resumen Consolidado de Resultados</h2>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Resumen Ejecutivo Financiero</h2>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                         <TarjetaKPI titulo="Total Ingresos Brutos" valor={`Bs ${totalIngresos.toFixed(2)}`} color="#1A1A1A" />
-                        <TarjetaKPI titulo="Comisiones Totales Personal" valor={`Bs ${totalComisiones.toFixed(2)}`} color="#D97706" />
-                        <TarjetaKPI titulo="Gastos Operativos Aprobados" valor={`Bs ${totalGastos.toFixed(2)}`} color="#DC2626" />
-                        <TarjetaKPI titulo="Utilidad Neta Estimada" valor={`Bs ${utilidadNeta.toFixed(2)}`} color="#059669" />
+                        <TarjetaKPI titulo="Comisiones Personal" valor={`Bs ${totalComisiones.toFixed(2)}`} color="#D97706" />
+                        <TarjetaKPI titulo="Gastos Operativos" valor={`Bs ${totalGastos.toFixed(2)}`} color="#DC2626" />
+                        <TarjetaKPI titulo="Utilidad Neta Salón" valor={`Bs ${utilidadNeta.toFixed(2)}`} color="#059669" />
                       </div>
+                    </div>
+                  )}
+
+                  {/* NUEVO REPORTE DE PRODUCTIVIDAD DE LOS TRABAJADORES */}
+                  {tipoReporte === 'productividad' && (
+                    <div>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Métricas de Productividad por Trabajadora / Estilista</h2>
+                      <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>Evaluación de rendimiento basada en cantidad de servicios realizados, volumen de ventas generado y aporte a la utilidad del salón.</p>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Estilista</th>
+                            <th style={thStyle}>Horario Asignado</th>
+                            <th style={thStyle}>Servicios Atendidos</th>
+                            <th style={thStyle}>Ventas Totales (Bs)</th>
+                            <th style={thStyle}>Comisión Pactada</th>
+                            <th style={thStyle}>Ganancia Trabajadora</th>
+                            <th style={thStyle}>Aporte Neto Salón</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {personal.filter(p => p.cargo === 'Estilista').map(p => {
+                            const citasP = citasFiltradas.filter(c => c.personal === p.nombre);
+                            const ventasP = citasP.reduce((sum, c) => sum + c.precio, 0);
+                            const comisionP = ventasP * p.comision;
+                            const aporteSalon = ventasP - comisionP;
+                            return (
+                              <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                                <td style={tdStyle}><strong>{p.nombre}</strong></td>
+                                <td style={tdStyle}>{p.horario || 'N/A'}</td>
+                                <td style={tdStyle}>{citasP.length} servicios</td>
+                                <td style={tdStyle}><strong>Bs {ventasP.toFixed(2)}</strong></td>
+                                <td style={tdStyle}>{(p.comision * 100)}%</td>
+                                <td style={tdStyle}><strong style={{ color: '#D97706' }}>Bs {comisionP.toFixed(2)}</strong></td>
+                                <td style={tdStyle}><strong style={{ color: '#059669' }}>Bs {aporteSalon.toFixed(2)}</strong></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* NUEVO REPORTE DETALLADO DE INGRESOS Y SERVICIOS */}
+                  {tipoReporte === 'ingresosDetalle' && (
+                    <div>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Desglose Detallado de Ingresos por Servicios y Demanda</h2>
+                      <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>Identifique cuáles son los servicios más rentables y solicitados por las clientas.</p>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Servicio</th>
+                            <th style={thStyle}>Precio Unitario Actual</th>
+                            <th style={thStyle}>Veces Solicitado</th>
+                            <th style={thStyle}>Ingreso Total Generado (Bs)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {servicios.map(s => {
+                            const citasServicio = citasFiltradas.filter(c => c.servicio === s.nombre);
+                            const cantidad = citasServicio.length;
+                            const ingresoTotalServicio = citasServicio.reduce((sum, c) => sum + c.precio, 0);
+                            return (
+                              <tr key={s.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                                <td style={tdStyle}><strong>{s.nombre}</strong></td>
+                                <td style={tdStyle}>Bs {s.precio.toFixed(2)}</td>
+                                <td style={tdStyle}>{cantidad}</td>
+                                <td style={tdStyle}><strong style={{ color: '#059669' }}>Bs {ingresoTotalServicio.toFixed(2)}</strong></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   )}
 
                   {tipoReporte === 'estilistas' && (
                     <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>2. Liquidación de Comisiones (Monto Neto)</h2>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Liquidación de Comisiones Netas</h2>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
@@ -479,7 +604,7 @@
 
                   {tipoReporte === 'arqueos' && (
                     <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>3. Auditoría de Arqueos por Turno</h2>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Auditoría de Arqueos por Turno</h2>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
@@ -509,7 +634,7 @@
 
                   {tipoReporte === 'gastos' && (
                     <div>
-                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>4. Desglose de Gastos Operativos</h2>
+                      <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Desglose de Gastos Operativos</h2>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
@@ -535,6 +660,134 @@
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* PANEL EXCLUSIVO DUEÑOS */}
+            {activoTab === 'config' && usuarioAutenticado.rol === 'gerencia' && (
+              <div>
+                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Panel de Control Exclusivo: Dueños & Gerencia</h2>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', marginBottom: '30px' }}>
+                  
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0, color: '#1A1A1A' }}>➕ Añadir Nueva Trabajadora / Estilista</h3>
+                    <form onSubmit={agregarTrabajadora} style={{ display: 'grid', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Nombre Completo:</label>
+                        <input type="text" placeholder="Ej. Camila Perez" value={nuevoNombreTrabajadora} onChange={(e) => setNuevoNombreTrabajadora(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Cargo:</label>
+                          <select value={nuevoCargoTrabajadora} onChange={(e) => setNuevoCargoTrabajadora(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                            <option value="Estilista">Estilista</option>
+                            <option value="Administración">Administración</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>PIN de Acceso (4 dígitos):</label>
+                          <input type="password" maxLength="4" placeholder="••••" value={nuevoPinTrabajadora} onChange={(e) => setNuevoPinTrabajadora(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5', textAlign: 'center' }} required />
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Comisión (%):</label>
+                          <input type="number" value={nuevoComisionTrabajadora} onChange={(e) => setNuevoComisionTrabajadora(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Horario / Turno:</label>
+                          <input type="text" placeholder="Ej. Mañana (09:00 - 14:00)" value={nuevoHorarioTrabajadora} onChange={(e) => setNuevoHorarioTrabajadora(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                      </div>
+                      <button type="submit" style={btnPrimaryStyle}>Guardar Trabajadora</button>
+                    </form>
+                  </div>
+
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0, color: '#1A1A1A' }}>✂️ Añadir Nuevo Servicio</h3>
+                    <form onSubmit={agregarServicio} style={{ display: 'grid', gap: '12px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Nombre del Servicio:</label>
+                        <input type="text" placeholder="Ej. Balayage Pro" value={nuevoServicioNombre} onChange={(e) => setNuevoServicioNombre(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Precio (Bs):</label>
+                          <input type="number" step="0.01" placeholder="150.00" value={nuevoServicioPrecio} onChange={(e) => setNuevoServicioPrecio(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Comisión (%):</label>
+                          <input type="number" value={nuevoServicioComision} onChange={(e) => setNuevoServicioComision(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
+                        </div>
+                      </div>
+                      <button type="submit" style={{ ...btnPrimaryStyle, marginTop: '26px' }}>Guardar Servicio</button>
+                    </form>
+                  </div>
+
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px' }}>
+                  
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Gestión de Horarios y Comisiones del Personal</h3>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Nombre & Cargo</th>
+                            <th style={thStyle}>Comisión (%)</th>
+                            <th style={thStyle}>Horario / Turno Asignado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {personal.map(p => (
+                            <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}><strong>{p.nombre}</strong><br/><span style={{ fontSize: '11px', color: '#666' }}>{p.cargo}</span></td>
+                              <td style={tdStyle}>
+                                <input type="number" value={p.comision * 100} onChange={(e) => actualizarComisionPersonal(p.id, e.target.value)} style={{ width: '50px', padding: '4px', textAlign: 'center' }} /> %
+                              </td>
+                              <td style={tdStyle}>
+                                <input type="text" value={p.horario || ''} onChange={(e) => actualizarHorario(p.id, e.target.value)} style={{ width: '100%', padding: '4px' }} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
+                    <h3 style={{ marginTop: 0 }}>Modificar Precios y Comisión de Servicios</h3>
+                    <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>* Al modificar aquí, las citas futuras se crearán con el nuevo precio, respetando las anteriores.</p>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
+                            <th style={thStyle}>Servicio</th>
+                            <th style={thStyle}>Precio (Bs)</th>
+                            <th style={thStyle}>Comisión (%)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {servicios.map(s => (
+                            <tr key={s.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
+                              <td style={tdStyle}><strong>{s.nombre}</strong></td>
+                              <td style={tdStyle}>
+                                <input type="number" step="0.01" value={s.precio} onChange={(e) => actualizarPrecioServicio(s.id, e.target.value)} style={{ width: '70px', padding: '4px', textAlign: 'center' }} /> Bs
+                              </td>
+                              <td style={tdStyle}>
+                                <input type="number" value={s.comisionPorc || 50} onChange={(e) => actualizarComisionServicio(s.id, e.target.value)} style={{ width: '50px', padding: '4px', textAlign: 'center' }} /> %
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                </div>
+
               </div>
             )}
 
@@ -567,7 +820,7 @@
                                 {citasEnEsaHora.map(c => (
                                   <div key={c.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #D97706', borderRadius: '4px', padding: '6px', marginBottom: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                                     <div style={{ fontWeight: '700', color: '#1A1A1A', fontSize: '13px' }}>{c.cliente}</div>
-                                    <div style={{ color: '#555' }}>💇‍♀️ {c.servicio}</div>
+                                    <div style={{ color: '#555' }}>💇‍♀️ {c.servicio} <span style={{ fontSize: '11px', color: '#888' }}>(Bs {c.precio})</span></div>
                                     
                                     <div style={{ marginTop: '4px', fontSize: '11px' }}>
                                       Estilista: 
@@ -724,7 +977,7 @@
               </div>
             )}
 
-            {/* GASTOS (CON APROBACIÓN GERENCIAL Y VISIBILIDAD SEGMENTADA) */}
+            {/* GASTOS */}
             {activoTab === 'gastos' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Gastos Operativos</h2>
@@ -789,7 +1042,7 @@
               </div>
             )}
 
-            {/* LIMPIEZA Y DESCANSOS (VISIBLE PARA TODAS) */}
+            {/* LIMPIEZA Y DESCANSOS */}
             {activoTab === 'limpieza' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Cronograma General de Limpieza y Descansos</h2>
@@ -853,7 +1106,7 @@
               </div>
             )}
 
-            {/* COMISIONES (SOLO MONTO NETO) */}
+            {/* COMISIONES */}
             {activoTab === 'comisiones' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>
@@ -891,7 +1144,7 @@
               </div>
             )}
 
-            {/* RECOMENDACIONES Y COMENTARIOS DEL DUEÑO */}
+            {/* RECOMENDACIONES */}
             {activoTab === 'recomendaciones' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Recomendaciones y Comentarios Gerenciales</h2>
@@ -936,7 +1189,7 @@
               </div>
             )}
 
-            {/* PESTAÑA DE SOLICITUDES / AUTORIZACIONES */}
+            {/* PESTAÑA DE SOLICITUDES */}
             {activoTab === 'misAutorizaciones' && (
               <div>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Panel de Solicitudes y Autorizaciones</h2>
@@ -967,35 +1220,6 @@
                             </td>
                           </tr>
                         ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* CONFIGURACIÓN MAESTRA */}
-            {activoTab === 'config' && usuarioAutenticado.rol === 'gerencia' && (
-              <div>
-                <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginBottom: '20px' }}>Gestión de Personal y Claves de Acceso (PINs)</h2>
-                <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#F5EBEE', borderBottom: '2px solid #E2DDD5' }}>
-                        <th style={thStyle}>Nombre</th>
-                        <th style={thStyle}>Cargo</th>
-                        <th style={thStyle}>PIN</th>
-                        <th style={thStyle}>Comisión</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {personal.map(p => (
-                        <tr key={p.id} style={{ borderBottom: '1px solid #E2DDD5' }}>
-                          <td style={tdStyle}><strong>{p.nombre}</strong></td>
-                          <td style={tdStyle}>{p.cargo}</td>
-                          <td style={tdStyle}><span style={{ backgroundColor: '#E5E7EB', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace', fontWeight: '700' }}>{p.pin}</span></td>
-                          <td style={tdStyle}>{(p.comision * 100)}%</td>
-                        </tr>
-                      ))}
                     </tbody>
                   </table>
                 </div>
