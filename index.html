@@ -63,8 +63,8 @@
       const [citas, setCitas] = useState(() => {
         const saved = localStorage.getItem('meraki_citas');
         return saved ? JSON.parse(saved) : [
-          { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', precio: 120, adelanto: 50, metodoAdelanto: 'QR (Casa)', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad', modificadoAsistencia: false },
-          { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió', modificadoAsistencia: false },
+          { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', creador: 'Sarela', precio: 120, adelanto: 50, metodoAdelanto: 'QR (Casa)', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad', modificadoAsistencia: false },
+          { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', creador: 'Manuel Aguilar', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió', modificadoAsistencia: false },
         ];
       });
 
@@ -111,7 +111,6 @@
         ];
       });
 
-      // Sincronización automática con localStorage
       useEffect(() => { localStorage.setItem('meraki_usuario', JSON.stringify(usuarioAutenticado)); }, [usuarioAutenticado]);
       useEffect(() => { localStorage.setItem('meraki_personal', JSON.stringify(personal)); }, [personal]);
       useEffect(() => { localStorage.setItem('meraki_servicios', JSON.stringify(servicios)); }, [servicios]);
@@ -128,13 +127,9 @@
       const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-11-01');
       const [filtroFechaFin, setFiltroFechaFin] = useState('2026-11-30');
 
-      // Estado para navegación de Semanas en el Calendario y selector rápido de fecha
       const [fechaBaseCalendario, setFechaBaseCalendario] = useState(new Date('2026-11-10'));
-
-      // Estado para modal/edición de cita (Dueño / Admin)
       const [citaEnEdicion, setCitaEnEdicion] = useState(null);
 
-      // Formularios Dueño (Configuración)
       const [nuevoNombreTrabajadora, setNuevoNombreTrabajadora] = useState('');
       const [nuevoCargoTrabajadora, setNuevoCargoTrabajadora] = useState('Estilista');
       const [nuevoPinTrabajadora, setNuevoPinTrabajadora] = useState('');
@@ -145,13 +140,11 @@
       const [nuevoServicioPrecio, setNuevoServicioPrecio] = useState('');
       const [nuevoServicioComision, setNuevoServicioComision] = useState('50');
 
-      // Formularios Operativos
       const [nuevaFecha, setNuevaFecha] = useState('2026-11-10');
       const [nuevaHora, setNuevaHora] = useState('11:00');
       const [nuevoCliente, setNuevoCliente] = useState('');
       const [nuevoCelular, setNuevoCelular] = useState('');
       const [nuevoServicio, setNuevoServicio] = useState('Cortes');
-      const [nuevaEstilista, setNuevaEstilista] = useState('Por Asignar');
       const [nuevoAdelanto, setNuevoAdelanto] = useState('');
       const [nuevoMetodoAdelanto, setNuevoMetodoAdelanto] = useState('Efectivo');
 
@@ -209,7 +202,6 @@
         setErrorLogin('');
       };
 
-      // Funciones del Dueño / Gerencia
       const agregarTrabajadora = (e) => {
         e.preventDefault();
         if (!nuevoNombreTrabajadora.trim() || !nuevoPinTrabajadora.trim()) return alert('Complete nombre y PIN.');
@@ -256,7 +248,6 @@
         setPersonal(personal.map(p => p.id === id ? { ...p, comision: parseFloat(nuevaComision) / 100 } : p));
       };
 
-      // Funciones Operativas de Citas
       const agregarCita = (e) => {
         e.preventDefault();
         if (!nuevoCliente.trim()) return alert('Ingrese clienta.');
@@ -264,10 +255,12 @@
         const precioTotal = servicioObj ? servicioObj.precio : 100;
         const adelantoNum = parseFloat(nuevoAdelanto) || 0;
 
-        const esAdminOGerente = usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion';
-        const estadoCita = esAdminOGerente ? '🟢 APROBADO' : '🟡 PENDIENTE DE APROBACIÓN (Por Admin/Dueño)';
+        // Validación estricta para que el adelanto no exceda el precio total del servicio
+        if (adelantoNum > precioTotal) {
+          return alert(`⚠️ El adelanto (Bs ${adelantoNum}) no puede ser mayor al precio total del servicio (${servicioObj.nombre}: Bs ${precioTotal}).`);
+        }
 
-        const estilistaAsignada = nuevaEstilista !== 'Por Asignar' ? nuevaEstilista : (usuarioAutenticado.rol === 'estilista' ? usuarioAutenticado.nombre : 'Por Asignar');
+        const saldoCalculado = precioTotal - adelantoNum;
 
         const nuevaCitaObj = {
           id: Date.now(),
@@ -276,12 +269,13 @@
           cliente: nuevoCliente,
           celular: nuevoCelular || 'S/N',
           servicio: nuevoServicio,
-          personal: estilistaAsignada,
+          personal: 'Por Asignar',
+          creador: usuarioAutenticado.nombre,
           precio: precioTotal, 
           adelanto: adelantoNum,
           metodoAdelanto: nuevoMetodoAdelanto,
-          saldo: (precioTotal - adelantoNum) > 0 ? (precioTotal - adelantoNum) : 0,
-          estado: estadoCita,
+          saldo: saldoCalculado,
+          estado: '⏳ PENDIENTE ASIGNACIÓN',
           asistencia: 'Sin Novedad',
           modificadoAsistencia: false
         };
@@ -291,12 +285,18 @@
         setNuevoCliente('');
         setNuevoCelular('');
         setNuevoAdelanto('');
-        alert('¡Cita registrada con éxito y reflejada en el calendario!');
+        alert('¡Cita registrada con éxito como "Por Asignar" en el calendario!');
         setActivoTab('agendaMatriz');
       };
 
       const aprobarCita = (id) => {
         setCitas(citas.map(c => c.id === id ? { ...c, estado: '🟢 APROBADO' } : c));
+      };
+
+      const marcarSaldadoPorDueno = (id) => {
+        if (usuarioAutenticado.rol !== 'gerencia') return alert('Acción exclusiva para el Dueño / Gerencia.');
+        setCitas(citas.map(c => c.id === id ? { ...c, saldo: 0, adelanto: c.precio } : c));
+        alert('✅ Saldo marcado como PAGADO COMPLETO por la gerencia.');
       };
 
       const eliminarCita = (id) => {
@@ -309,7 +309,15 @@
       const guardarEdicionCita = (e) => {
         e.preventDefault();
         if (!citaEnEdicion) return;
-        setCitas(citas.map(c => c.id === citaEnEdicion.id ? citaEnEdicion : c));
+        
+        if (citaEnEdicion.adelanto > citaEnEdicion.precio) {
+          return alert(`⚠️ El adelanto no puede ser mayor al precio total (Bs ${citaEnEdicion.precio}).`);
+        }
+
+        const saldoActualizado = citaEnEdicion.precio - citaEnEdicion.adelanto;
+        const citaFinal = { ...citaEnEdicion, saldo: saldoActualizado };
+
+        setCitas(citas.map(c => c.id === citaFinal.id ? citaFinal : c));
         setCitaEnEdicion(null);
         alert('¡Cita actualizada con éxito!');
       };
@@ -337,6 +345,9 @@
       };
 
       const asignarEstilista = (id, nombreEstilista) => {
+        if (usuarioAutenticado.rol !== 'gerencia' && usuarioAutenticado.rol !== 'administracion') {
+          return alert('⚠️ Solo el Dueño o el Administrador pueden asignar o modificar la estilista del servicio.');
+        }
         setCitas(citas.map(c => c.id === id ? { ...c, personal: nombreEstilista, estado: '🟢 APROBADO' } : c));
       };
 
@@ -422,7 +433,6 @@
         setAutorizaciones(autorizaciones.map(a => a.id === id ? { ...a, estado: '🟢 APROBADO' } : a));
       };
 
-      // Cálculo de los 7 días de Lunes a Domingo según la fecha base
       const obtenerDiasDeLaSemana = (fechaBase) => {
         const d = new Date(fechaBase);
         const diaSemana = d.getDay(); 
@@ -892,14 +902,13 @@
               </div>
             )}
 
-            {/* CALENDARIO MATRIZ CON SELECTOR RÁPIDO DE FECHA (CALENDARIO PEQUEÑO) */}
+            {/* CALENDARIO MATRIZ CON QUIÉN CARGó, SALDO CLARO Y ASIGNACIÓN EXCLUSIVA ADMIN/DUEÑO */}
             {activoTab === 'agendaMatriz' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px', backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
                   <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', margin: 0 }}>Calendario Matriz Semanal (Lunes a Domingo)</h2>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    {/* Selector rápido de fecha (Mini Calendario integrado) */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <label style={{ fontSize: '13px', fontWeight: '600' }}>Ir a Fecha:</label>
                       <input 
@@ -942,28 +951,28 @@
                                 {citasEnEsaHora.map(c => (
                                   <div key={c.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #D97706', borderRadius: '4px', padding: '6px', marginBottom: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                                     <div style={{ fontWeight: '700', color: '#1A1A1A', fontSize: '13px' }}>{c.cliente}</div>
-                                    <div style={{ color: '#555' }}>💇‍♀️ {c.servicio} <span style={{ fontSize: '11px', color: '#888' }}>(Bs {c.precio})</span></div>
-                                    <div style={{ fontSize: '11px', marginTop: '2px' }}>Estado: <strong>{c.estado}</strong></div>
+                                    <div style={{ color: '#555' }}>💇‍♀️ {c.servicio} <span style={{ fontSize: '11px', color: '#888' }}>(Total: Bs {c.precio})</span></div>
                                     
-                                    {/* Botón de aprobación rápida para Dueño / Admin */}
-                                    {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && c.estado.includes('PENDIENTE') && (
-                                      <button onClick={() => aprobarCita(c.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '3px 6px', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: '700', marginTop: '4px', width: '100%' }}>
-                                        ✔️ Aprobar Cita
+                                    {/* Mostrar Adelanto y Saldo pendiente o PAGADO */}
+                                    <div style={{ fontSize: '11px', marginTop: '2px', color: '#333' }}>
+                                      Adelanto: <strong>Bs {c.adelanto}</strong> | Saldo: <strong style={{ color: c.saldo > 0 ? '#DC2626' : '#059669' }}>{c.saldo > 0 ? `Bs ${c.saldo}` : 'PAGADO COMPLETO'}</strong>
+                                    </div>
+
+                                    {/* Botón exclusivo Dueño para marcar saldo pagado completo */}
+                                    {usuarioAutenticado.rol === 'gerencia' && c.saldo > 0 && (
+                                      <button onClick={() => marcarSaldadoPorDueno(c.id)} style={{ backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '2px 4px', borderRadius: '3px', cursor: 'pointer', fontSize: '10px', fontWeight: '700', marginTop: '3px', width: '100%' }}>
+                                        💵 Marcar Saldado (Dueño)
                                       </button>
                                     )}
 
-                                    {/* Botón de Modificar / Eliminar para Dueño o Admin */}
-                                    {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && (
-                                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                                        <button onClick={() => setCitaEnEdicion({ ...c })} style={{ flex: 1, backgroundColor: '#2563EB', color: '#FFF', border: 'none', padding: '2px 4px', borderRadius: '3px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' }}>
-                                          ✏️ Editar
-                                        </button>
-                                        <button onClick={() => eliminarCita(c.id)} style={{ flex: 1, backgroundColor: '#DC2626', color: '#FFF', border: 'none', padding: '2px 4px', borderRadius: '3px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' }}>
-                                          🗑️ Borrar
-                                        </button>
-                                      </div>
-                                    )}
+                                    <div style={{ fontSize: '11px', marginTop: '3px' }}>Estado: <strong>{c.estado}</strong></div>
 
+                                    {/* Quién cargó la cita en la agenda */}
+                                    <div style={{ fontSize: '10px', color: '#666', marginTop: '2px' }}>
+                                      Cargado por: <strong>{c.creador || 'Sistema'}</strong>
+                                    </div>
+
+                                    {/* Asignación de Estilista (SOLO DUEÑO O ADMIN PUEDE CAMBIARLO) */}
                                     <div style={{ marginTop: '4px', fontSize: '11px' }}>
                                       Estilista: 
                                       {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') ? (
@@ -974,9 +983,21 @@
                                           ))}
                                         </select>
                                       ) : (
-                                        <strong style={{ color: '#03543F', marginLeft: '4px' }}>{c.personal}</strong>
+                                        <strong style={{ color: c.personal === 'Por Asignar' ? '#DC2626' : '#03543F', marginLeft: '4px' }}>{c.personal}</strong>
                                       )}
                                     </div>
+
+                                    {/* Botones de Dueño/Admin para Editar o Borrar cita */}
+                                    {(usuarioAutenticado.rol === 'gerencia' || usuarioAutenticado.rol === 'administracion') && (
+                                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                                        <button onClick={() => setCitaEnEdicion({ ...c })} style={{ flex: 1, backgroundColor: '#2563EB', color: '#FFF', border: 'none', padding: '2px 4px', borderRadius: '3px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' }}>
+                                          ✏️ Editar
+                                        </button>
+                                        <button onClick={() => eliminarCita(c.id)} style={{ flex: 1, backgroundColor: '#DC2626', color: '#FFF', border: 'none', padding: '2px 4px', borderRadius: '3px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' }}>
+                                          🗑️ Borrar
+                                        </button>
+                                      </div>
+                                    )}
 
                                     <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                       <select value={c.asistencia} onChange={(e) => solicitarCambioAsistencia(c.id, e.target.value)} style={{ fontSize: '10px', padding: '2px' }}>
@@ -997,7 +1018,7 @@
                   </table>
                 </div>
 
-                {/* MODAL DE EDICIÓN DE CITA (PARA DUEÑO/ADMIN) */}
+                {/* MODAL DE EDICIÓN DE CITA */}
                 {citaEnEdicion && (
                   <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
                     <div style={{ backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', width: '100%', maxWidth: '450px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
@@ -1019,18 +1040,22 @@
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                           <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Precio (Bs):</label>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Precio Total (Bs):</label>
                             <input type="number" step="0.01" value={citaEnEdicion.precio} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, precio: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
                           </div>
                           <div>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Estilista:</label>
-                            <select value={citaEnEdicion.personal} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, personal: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                              <option value="Por Asignar">Por Asignar</option>
-                              {personal.filter(p => p.cargo === 'Estilista').map(p => (
-                                <option key={p.id} value={p.nombre}>{p.nombre}</option>
-                              ))}
-                            </select>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Adelanto (Bs):</label>
+                            <input type="number" step="0.01" value={citaEnEdicion.adelanto} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, adelanto: parseFloat(e.target.value) || 0 })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
                           </div>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>Estilista Asignada (Solo Admin/Dueño):</label>
+                          <select value={citaEnEdicion.personal} onChange={(e) => setCitaEnEdicion({ ...citaEnEdicion, personal: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                            <option value="Por Asignar">Por Asignar</option>
+                            {personal.filter(p => p.cargo === 'Estilista').map(p => (
+                              <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                            ))}
+                          </select>
                         </div>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
                           <button type="submit" style={{ flex: 1, backgroundColor: '#059669', color: '#FFF', border: 'none', padding: '10px', borderRadius: '4px', fontWeight: '700', cursor: 'pointer' }}>Guardar Cambios</button>
@@ -1043,7 +1068,7 @@
               </div>
             )}
 
-            {/* NUEVA CITA */}
+            {/* NUEVA CITA (SIN SELECCIÓN DE ESTILISTA - REGISTRA QUIÉN LA CARGÓ) */}
             {activoTab === 'nuevaCita' && (
               <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginTop: 0, marginBottom: '20px' }}>Registrar Nueva Cita</h2>
@@ -1062,24 +1087,13 @@
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Nombre Clienta:</label>
                     <input type="text" placeholder="Ej. Ana Gomez" value={nuevoCliente} onChange={(e) => setNuevoCliente(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }} required />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Servicio:</label>
-                      <select value={nuevoServicio} onChange={(e) => setNuevoServicio(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                        {servicios.map(s => (
-                          <option key={s.id} value={s.nombre}>{s.nombre} (Bs {s.precio})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Estilista:</label>
-                      <select value={nuevaEstilista} onChange={(e) => setNuevaEstilista(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
-                        <option value="Por Asignar">-- Por Asignar --</option>
-                        {personal.filter(p => p.cargo === 'Estilista').map(p => (
-                          <option key={p.id} value={p.nombre}>{p.nombre}</option>
-                        ))}
-                      </select>
-                    </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Servicio:</label>
+                    <select value={nuevoServicio} onChange={(e) => setNuevoServicio(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2DDD5' }}>
+                      {servicios.map(s => (
+                        <option key={s.id} value={s.nombre}>{s.nombre} (Bs {s.precio})</option>
+                      ))}
+                    </select>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
@@ -1093,6 +1107,9 @@
                         <option value="QR (Casa)">QR (Remoto / Casa)</option>
                       </select>
                     </div>
+                  </div>
+                  <div style={{ backgroundColor: '#FFFBEB', padding: '10px', borderRadius: '6px', border: '1px solid #D97706', fontSize: '12px', color: '#B45309' }}>
+                    ℹ️ <strong>Nota:</strong> Al agendar, se registrará que usted (<strong>{usuarioAutenticado.nombre}</strong>) cargó esta cita y quedará <strong>"Por Asignar"</strong> para que el Dueño o Administrador le asigne la estilista correspondiente en la agenda.
                   </div>
                   <button type="submit" style={{ ...btnPrimaryStyle, padding: '12px', marginTop: '10px' }}>Guardar Cita</button>
                 </form>
