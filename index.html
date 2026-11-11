@@ -25,91 +25,78 @@
     const { useState, useEffect } = React;
 
     function MerakiBeautySaaS() {
-      const [usuarioAutenticado, setUsuarioAutenticado] = useState(() => {
-        const saved = localStorage.getItem('meraki_usuario');
-        return saved ? JSON.parse(saved) : null;
-      });
+      // Cargar datos desde la URL (si se abrió desde el link compartido) o localStorage
+      const cargarDatosIniciales = (clave, valorPorDefecto) => {
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const datosUrl = urlParams.get(clave);
+          if (datosUrl) {
+            const parsed = JSON.parse(atob(datosUrl));
+            localStorage.setItem(clave, JSON.stringify(parsed));
+            return parsed;
+          }
+          const saved = localStorage.getItem(clave);
+          return saved ? JSON.parse(saved) : valorPorDefecto;
+        } catch (e) {
+          return valorPorDefecto;
+        }
+      };
+
+      const [usuarioAutenticado, setUsuarioAutenticado] = useState(() => cargarDatosIniciales('meraki_usuario', null));
 
       const [rolSeleccionadoLogin, setRolSeleccionadoLogin] = useState('estilista');
       const [estilistaLogin, setEstilistaLogin] = useState('Sarela');
       const [pinLogin, setPinLogin] = useState('');
       const [errorLogin, setErrorLogin] = useState('');
 
-      const [personal, setPersonal] = useState(() => {
-        const saved = localStorage.getItem('meraki_personal');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, pin: '1111', horario: 'Mañana (09:00 - 14:00)' },
-          { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, pin: '2222', horario: 'Tarde (14:00 - 20:00)' },
-          { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, pin: '3333', horario: 'Completo (09:00 - 19:00)' },
-          { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, pin: '4444', horario: 'Mañana (09:00 - 14:00)' },
-          { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, pin: '5555', horario: 'Tarde (14:00 - 20:00)' },
-          { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, pin: '6666', horario: 'Completo (09:00 - 19:00)' },
-          { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, pin: '7777', horario: 'Mañana (09:00 - 14:00)' },
-          { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, pin: '2026', horario: 'Completo (09:00 - 19:00)' },
-        ];
-      });
+      const [personal, setPersonal] = useState(() => cargarDatosIniciales('meraki_personal', [
+        { id: 1, nombre: 'Sarela', cargo: 'Estilista', comision: 0.50, pin: '1111', horario: 'Mañana (09:00 - 14:00)' },
+        { id: 2, nombre: 'Karen', cargo: 'Estilista', comision: 0.50, pin: '2222', horario: 'Tarde (14:00 - 20:00)' },
+        { id: 3, nombre: 'Viki', cargo: 'Estilista', comision: 0.50, pin: '3333', horario: 'Completo (09:00 - 19:00)' },
+        { id: 4, nombre: 'Ale', cargo: 'Estilista', comision: 0.50, pin: '4444', horario: 'Mañana (09:00 - 14:00)' },
+        { id: 5, nombre: 'Nilda', cargo: 'Estilista', comision: 0.50, pin: '5555', horario: 'Tarde (14:00 - 20:00)' },
+        { id: 6, nombre: 'Andrea Roque', cargo: 'Estilista', comision: 0.50, pin: '6666', horario: 'Completo (09:00 - 19:00)' },
+        { id: 7, nombre: 'Laura', cargo: 'Estilista', comision: 0.50, pin: '7777', horario: 'Mañana (09:00 - 14:00)' },
+        { id: 8, nombre: 'Manuel Aguilar', cargo: 'Administración', comision: 0.00, pin: '2026', horario: 'Completo (09:00 - 19:00)' },
+      ]));
 
-      const [servicios, setServicios] = useState(() => {
-        const saved = localStorage.getItem('meraki_servicios');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, nombre: 'Maquillaje y Peinado', precio: 150.00, comisionPorc: 50 },
-          { id: 2, nombre: 'Bomba Capilar', precio: 120.00, comisionPorc: 50 },
-          { id: 3, nombre: 'Cortes', precio: 60.00, comisionPorc: 50 },
-          { id: 4, nombre: 'Laminado', precio: 180.00, comisionPorc: 50 },
-          { id: 5, nombre: 'Pestañas', precio: 200.00, comisionPorc: 50 },
-        ];
-      });
+      const [servicios, setServicios] = useState(() => cargarDatosIniciales('meraki_servicios', [
+        { id: 1, nombre: 'Maquillaje y Peinado', precio: 150.00, comisionPorc: 50 },
+        { id: 2, nombre: 'Bomba Capilar', precio: 120.00, comisionPorc: 50 },
+        { id: 3, nombre: 'Cortes', precio: 60.00, comisionPorc: 50 },
+        { id: 4, nombre: 'Laminado', precio: 180.00, comisionPorc: 50 },
+        { id: 5, nombre: 'Pestañas', precio: 200.00, comisionPorc: 50 },
+      ]));
 
-      const [citas, setCitas] = useState(() => {
-        const saved = localStorage.getItem('meraki_citas');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', creador: 'Sarela', precio: 120, adelanto: 50, metodoAdelanto: 'QR (Casa)', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad', modificadoAsistencia: false },
-          { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', creador: 'Manuel Aguilar', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió', modificadoAsistencia: false },
-        ];
-      });
+      const [citas, setCitas] = useState(() => cargarDatosIniciales('meraki_citas', [
+        { id: 1, fecha: '2026-11-10', hora: '09:00', cliente: 'Milenka Ana Vega Garcia', celular: '72345678', servicio: 'Bomba Capilar', personal: 'Por Asignar', creador: 'Sarela', precio: 120, adelanto: 50, metodoAdelanto: 'QR (Casa)', saldo: 70, estado: '⏳ PENDIENTE ASIGNACIÓN', asistencia: 'Sin Novedad', modificadoAsistencia: false },
+        { id: 2, fecha: '2026-11-10', hora: '10:30', cliente: 'Martina Rosas Vicente', celular: '71122334', servicio: 'Laminado', personal: 'Karen', creador: 'Manuel Aguilar', precio: 180, adelanto: 180, metodoAdelanto: 'Efectivo', saldo: 0, estado: '🟢 APROBADO', asistencia: 'Asistió', modificadoAsistencia: false },
+      ]));
 
-      const [gastos, setGastos] = useState(() => {
-        const saved = localStorage.getItem('meraki_gastos');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar', turno: 'Mañana', estado: '🟢 APROBADO' }
-        ];
-      });
+      const [gastos, setGastos] = useState(() => cargarDatosIniciales('meraki_gastos', [
+        { id: 1, fecha: '2026-11-10', descripcion: 'Insumos de limpieza y toallas', categoria: 'Limpieza', monto: 85.00, autorizado: 'Manuel Aguilar', turno: 'Mañana', estado: '🟢 APROBADO' }
+      ]));
 
-      const [arqueos, setArqueos] = useState(() => {
-        const saved = localStorage.getItem('meraki_arqueos');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, fecha: '2026-11-10', turno: 'Mañana', efectivoDeclarado: 350, qrRegistrado: 50, totalIngresosSist: 400, totalGastos: 85, diferencia: 0, estado: '🟢 APROBADO', responsable: 'Manuel Aguilar' }
-        ];
-      });
+      const [arqueos, setArqueos] = useState(() => cargarDatosIniciales('meraki_arqueos', [
+        { id: 1, fecha: '2026-11-10', turno: 'Mañana', efectivoDeclarado: 350, qrRegistrado: 50, totalIngresosSist: 400, totalGastos: 85, diferencia: 0, estado: '🟢 APROBADO', responsable: 'Manuel Aguilar' }
+      ]));
 
-      const [limpiezaDescansos, setLimpiezaDescansos] = useState(() => {
-        const saved = localStorage.getItem('meraki_limpieza');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, fecha: '2026-11-10', persona: 'Sarela', turno: 'Mañana', tarea: 'Limpieza general de espejos y tocadores' },
-          { id: 2, fecha: '2026-11-11', persona: 'Karen', turno: 'Tarde', tarea: 'Desinfección de lavabos y administración' },
-        ];
-      });
+      const [limpiezaDescansos, setLimpiezaDescansos] = useState(() => cargarDatosIniciales('meraki_limpieza', [
+        { id: 1, fecha: '2026-11-10', persona: 'Sarela', turno: 'Mañana', tarea: 'Limpieza general de espejos y tocadores' },
+        { id: 2, fecha: '2026-11-11', persona: 'Karen', turno: 'Tarde', tarea: 'Desinfección de lavabos y administración' },
+      ]));
 
-      const [descuentos, setDescuentos] = useState(() => {
-        const saved = localStorage.getItem('meraki_descuentos');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, fecha: '2026-11-10', personal: 'Karen', monto: 20, motivo: 'Material dañado por descuido', estado: '🟢 APROBADO' }
-        ];
-      });
+      const [descuentos, setDescuentos] = useState(() => cargarDatosIniciales('meraki_descuentos', [
+        { id: 1, fecha: '2026-11-10', personal: 'Karen', monto: 20, motivo: 'Material dañado por descuido', estado: '🟢 APROBADO' }
+      ]));
 
-      const [autorizaciones, setAutorizaciones] = useState(() => {
-        const saved = localStorage.getItem('meraki_autorizaciones');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, solicitante: 'Sarela', tipo: 'Modificar asistencia por segunda vez', detalle: 'Clienta llegó tarde pero avisó', estado: 'PENDIENTE' }
-        ];
-      });
+      const [autorizaciones, setAutorizaciones] = useState(() => cargarDatosIniciales('meraki_autorizaciones', [
+        { id: 1, solicitante: 'Sarela', tipo: 'Modificar asistencia por segunda vez', detalle: 'Clienta llegó tarde pero avisó', estado: 'PENDIENTE' }
+      ]));
 
-      const [recomendaciones, setRecomendaciones] = useState(() => {
-        const saved = localStorage.getItem('meraki_recomendaciones');
-        return saved ? JSON.parse(saved) : [
-          { id: 1, estilista: 'Sarela', mensaje: '¡Excelente trabajo con las bombas capilares esta semana, Sarela! Sigue así.', fecha: '2026-11-10' }
-        ];
-      });
+      const [recomendaciones, setRecomendaciones] = useState(() => cargarDatosIniciales('meraki_recomendaciones', [
+        { id: 1, estilista: 'Sarela', mensaje: '¡Excelente trabajo con las bombas capilares esta semana, Sarela! Sigue así.', fecha: '2026-11-10' }
+      ]));
 
       useEffect(() => { localStorage.setItem('meraki_usuario', JSON.stringify(usuarioAutenticado)); }, [usuarioAutenticado]);
       useEffect(() => { localStorage.setItem('meraki_personal', JSON.stringify(personal)); }, [personal]);
@@ -164,6 +151,20 @@
 
       const [recEstilista, setRecEstilista] = useState('Sarela');
       const [recMensaje, setRecMensaje] = useState('');
+
+      // Función para generar y copiar el enlace con los datos actuales para el celular
+      const generarEnlaceSincronizacion = () => {
+        try {
+          const citasB64 = btoa(JSON.stringify(citas));
+          const personalB64 = btoa(JSON.stringify(personal));
+          const urlBase = window.location.href.split('?')[0];
+          const enlaceFinal = `${urlBase}?meraki_citas=${citasB64}&meraki_personal=${personalB64}`;
+          navigator.clipboard.writeText(enlaceFinal);
+          alert('🔗 ¡Enlace copiado al portapapeles!\n\nPégalo en WhatsApp y ábrelo en tu celular para ver exactamente las mismas citas y datos.');
+        } catch (e) {
+          alert('Error al generar enlace de sincronización.');
+        }
+      };
 
       const manejarLogin = (e) => {
         e.preventDefault();
@@ -286,10 +287,6 @@
         setNuevoAdelanto('');
         alert('¡Cita registrada con éxito como "Por Asignar"!');
         setActivoTab('agendaMatriz');
-      };
-
-      const aprobarCita = (id) => {
-        setCitas(citas.map(c => c.id === id ? { ...c, estado: '🟢 APROBADO' } : c));
       };
 
       const marcarSaldadoPorDueno = (id) => {
@@ -533,9 +530,14 @@
               <span style={{ fontSize: '12px', color: '#E8C5C8' }}>Usuario Activo: <strong>{usuarioAutenticado.nombre}</strong> ({usuarioAutenticado.rol.toUpperCase()})</span>
             </div>
 
-            <button onClick={cerrarSesion} style={{ backgroundColor: '#333', color: '#E8C5C8', border: '1px solid #E8C5C8', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
-              🔒 Cerrar Sesión
-            </button>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button onClick={generarEnlaceSincronizacion} style={{ backgroundColor: '#059669', color: '#FFFFFF', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}>
+                📤 Copiar Link para Celular
+              </button>
+              <button onClick={cerrarSesion} style={{ backgroundColor: '#333', color: '#E8C5C8', border: '1px solid #E8C5C8', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+                🔒 Cerrar Sesión
+              </button>
+            </div>
           </header>
 
           <nav className="no-print" style={{ backgroundColor: '#2D2D2D', padding: '0 24px', display: 'flex', gap: '8px', overflowX: 'auto' }}>
