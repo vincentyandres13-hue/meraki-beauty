@@ -255,7 +255,6 @@
         const precioTotal = servicioObj ? servicioObj.precio : 100;
         const adelantoNum = parseFloat(nuevoAdelanto) || 0;
 
-        // Validación estricta para que el adelanto no exceda el precio total del servicio
         if (adelantoNum > precioTotal) {
           return alert(`⚠️ El adelanto (Bs ${adelantoNum}) no puede ser mayor al precio total del servicio (${servicioObj.nombre}: Bs ${precioTotal}).`);
         }
@@ -285,7 +284,7 @@
         setNuevoCliente('');
         setNuevoCelular('');
         setNuevoAdelanto('');
-        alert('¡Cita registrada con éxito como "Por Asignar" en el calendario!');
+        alert('¡Cita registrada con éxito como "Por Asignar"!');
         setActivoTab('agendaMatriz');
       };
 
@@ -346,7 +345,7 @@
 
       const asignarEstilista = (id, nombreEstilista) => {
         if (usuarioAutenticado.rol !== 'gerencia' && usuarioAutenticado.rol !== 'administracion') {
-          return alert('⚠️ Solo el Dueño o el Administrador pueden asignar o modificar la estilista del servicio.');
+          return alert('⚠️ Solo el Dueño o Administrador pueden asignar o cambiar la estilista.');
         }
         setCitas(citas.map(c => c.id === id ? { ...c, personal: nombreEstilista, estado: '🟢 APROBADO' } : c));
       };
@@ -902,7 +901,7 @@
               </div>
             )}
 
-            {/* CALENDARIO MATRIZ CON QUIÉN CARGó, SALDO CLARO Y ASIGNACIÓN EXCLUSIVA ADMIN/DUEÑO */}
+            {/* CALENDARIO MATRIZ CON QUIÉN CARGÓ, SALDO CLARO Y ASIGNACIÓN EXCLUSIVA ADMIN/DUEÑO */}
             {activoTab === 'agendaMatriz' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px', backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
@@ -1068,7 +1067,7 @@
               </div>
             )}
 
-            {/* NUEVA CITA (SIN SELECCIÓN DE ESTILISTA - REGISTRA QUIÉN LA CARGÓ) */}
+            {/* NUEVA CITA */}
             {activoTab === 'nuevaCita' && (
               <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#FFFFFF', padding: '24px', borderRadius: '8px', border: '1px solid #E2DDD5' }}>
                 <h2 style={{ borderLeft: '4px solid #E8C5C8', paddingLeft: '8px', marginTop: 0, marginBottom: '20px' }}>Registrar Nueva Cita</h2>
@@ -1109,7 +1108,7 @@
                     </div>
                   </div>
                   <div style={{ backgroundColor: '#FFFBEB', padding: '10px', borderRadius: '6px', border: '1px solid #D97706', fontSize: '12px', color: '#B45309' }}>
-                    ℹ️ <strong>Nota:</strong> Al agendar, se registrará que usted (<strong>{usuarioAutenticado.nombre}</strong>) cargó esta cita y quedará <strong>"Por Asignar"</strong> para que el Dueño o Administrador le asigne la estilista correspondiente en la agenda.
+                    ℹ️ <strong>Nota:</strong> Se registrará que usted (<strong>{usuarioAutenticado.nombre}</strong>) cargó esta cita como <strong>"Por Asignar"</strong>. El Dueño o Administrador le asignará la estilista correspondiente en la agenda.
                   </div>
                   <button type="submit" style={{ ...btnPrimaryStyle, padding: '12px', marginTop: '10px' }}>Guardar Cita</button>
                 </form>
